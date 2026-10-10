@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>For you, Amna &#129293;</title>
+<meta name="description" content="A garden of flowers that never wilts, and a letter — made just for Amna." />
+<meta name="theme-color" content="#210512" />
+<meta property="og:title" content="For you, Amna" />
+<meta property="og:description" content="Open the gift." />
+<meta property="og:type" content="website" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ctext y='26' font-size='26'%3E%F0%9F%8C%B9%3C/text%3E%3C/svg%3E" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Dancing+Script:wght@500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<!-- The single full-screen canvas drives both the flower tunnel and the
+     soft petal field behind the letter. -->
+<canvas id="stage" aria-hidden="true"></canvas>
+
+<button id="audio-toggle" class="chip chip--audio" type="button" aria-pressed="true" title="Sound on / off">
+  <span class="chip__icon" aria-hidden="true"></span>
+  <span class="chip__label">Sound</span>
+</button>
+
+<main id="app">
+
+  <!-- ══════════════════ 1. GIFT ══════════════════ -->
+  <section class="screen screen--gift is-active" id="screen-gift">
+    <div class="gift-card" id="gift-card">
+      <p class="eyebrow">A little something</p>
+      <h1 class="gift-title">For you, <span class="script">Amna</span></h1>
+
+      <button class="gift" id="gift" type="button" aria-label="Open your gift">
+        <span class="gift__halo" aria-hidden="true"></span>
+        <span class="gift__body">
+          <span class="gift__lid">
+            <span class="gift__bow" aria-hidden="true">
+              <i class="bow__loop bow__loop--l"></i>
+              <i class="bow__loop bow__loop--r"></i>
+              <i class="bow__knot"></i>
+            </span>
+          </span>
+          <span class="gift__box">
+            <span class="gift__ribbon" aria-hidden="true"></span>
+            <span class="gift__gloss" aria-hidden="true"></span>
+          </span>
+        </span>
+        <span class="gift__beam" aria-hidden="true"></span>
+      </button>
+
+      <p class="gift-hint">
+        <span class="pulse-dot" aria-hidden="true"></span>
+        Tap the gift to open
+      </p>
+    </div>
+  </section>
+
+  <!-- ══════════════════ 2. TUNNEL ══════════════════ -->
+  <section class="screen screen--tunnel" id="screen-tunnel" aria-hidden="true">
+    <p class="tunnel-name" id="tunnel-name">Amna</p>
+    <button class="chip chip--skip" id="skip-tunnel" type="button">Skip ahead</button>
+  </section>
+
+  <!-- ══════════════════ 3. LETTER ══════════════════ -->
+  <section class="screen screen--letter" id="screen-letter" aria-hidden="true">
+    <div class="letter-wrap" id="letter-wrap">
+
+      <article class="letter" id="letter">
+        <header class="letter__head">
+          <p class="eyebrow">To my dearest</p>
+          <h2 class="letter__name script">Amna</h2>
+          <div class="flourish" aria-hidden="true">
+            <span class="flourish__line"></span>
+            <span class="flourish__mark">&#10087;</span>
+            <span class="flourish__line"></span>
+          </div>
+        </header>
+
+        <div class="letter__body">
+          <p class="dropcap">
+            There are people who pass through your life, and then there are people who
+            quietly become part of it &mdash; who make ordinary days feel warmer just by
+            being in them. You are that person for me.
+          </p>
+
+          <p>
+            Thank you for the laughter that always arrives at exactly the right moment,
+            for the conversations that stretch far past midnight, and for the way you
+            listen &mdash; really listen &mdash; as though nothing else in the world
+            matters. You have a rare kind of heart: the kind that makes people feel safe,
+            seen, and a little braver than they were before.
+          </p>
+
+          <p>
+            Through every season, every distance, and every version of us &mdash; you
+            stayed. That is not a small thing. That is the whole thing.
+          </p>
+
+          <p>
+            So I built you a garden that never wilts, because I ran out of real flowers
+            to give you. May this year bring you softness, wild joy, and every good thing
+            you quietly hope for.
+          </p>
+
+          <p class="letter__ps">
+            <span class="ps-label">P.S.</span> The flowers in here never need water.
+            Just like us.
+          </p>
+        </div>
+
+        <section class="gallery" aria-label="Photo memories">
+          <h3 class="gallery__title">
+            <span class="gallery__line"></span>
+            Little moments
+            <span class="gallery__line"></span>
+          </h3>
+          <div class="polaroids" id="polaroids"></div>
+        </section>
+
+        <section class="signature" aria-label="Signature">
+          <p class="signature__lead">Yours in friendship, always</p>
+          <p class="signature__name script" id="signature-name">Your Friend</p>
+          <p class="signature__date" id="signature-date"></p>
+          <span class="signature__seal" aria-hidden="true">&#10084;</span>
+        </section>
+      </article>
+
+      <footer class="letter__actions">
+        <button class="btn btn--ghost" id="replay" type="button">
+          <span aria-hidden="true">&#10047;</span> Play the garden again
+        </button>
+        <button class="btn btn--solid" id="share" type="button">
+          <span aria-hidden="true">&#9825;</span> Copy this link
+        </button>
+      </footer>
+    </div>
+  </section>
+
+</main>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script src="js/config.js"></script>
+<script src="js/flowers.js"></script>
+<script src="js/photos.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/tunnel.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
