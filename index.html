@@ -869,10 +869,10 @@
       const imgs = BOUQUETS.slice(0, 6);
       const rots = [-4, 2, -3, 4, -2, 3];
       imgs.forEach((src, i) => {
-        const frame = document.createElement("div");
-        frame.className = "vframe-go";
-        const pol = document.createElement("div");
-        pol.className = "framed";
+        const frame = document.createElement("div");frame.className = 'vframe-go';
+;
+        const pol = document.createElement("div");pol.className = 'framed';
+;
         pol.style.transform = "rotate(" + rots[i % rots.length] + "deg)";
         const img = document.createElement("img");
         img.src = src;
