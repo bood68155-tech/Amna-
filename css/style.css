@@ -186,7 +186,8 @@ button,
 }
 
 /* the crop window: a plain rectangle showing only the box.
-   no circle, no dish, no rounded overlay. */
+   no circle, no dish, no rounded overlay. 
+   blends with pink background via multiply so no white rectangle shows. */
 .gift-crop {
   /* tuned to amna/5940471960225649129_120.jpg (736x736, white ground):
      the box occupies x 34.2–65.8% and y 31.6–68.4% of the photograph,
@@ -201,6 +202,8 @@ button,
   width: clamp(186px, 50vw, 272px);
   aspect-ratio: var(--crop-aspect, 0.7053);
   overflow: hidden;
+  mix-blend-mode: multiply;
+  background: transparent;
 }
 
 .gift-img {
