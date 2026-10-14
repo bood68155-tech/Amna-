@@ -167,7 +167,7 @@
     bloomStage.innerHTML = "";
     bloomStage.classList.remove("is-falling");
     var rng = mulberry32(20261014);
-    var COUNT = REDUCED ? 40 : 120;
+    var COUNT = REDUCED ? 80 : 300;
     var GOLDEN = Math.PI * (3 - Math.sqrt(5)); /* ≈ 137.5° */
     var MAX_R = 80;                            /* expanded radius for wider spiral */
     var frag = document.createDocumentFragment();
