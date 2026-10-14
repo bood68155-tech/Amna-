@@ -216,6 +216,9 @@ button,
   top: var(--crop-y);
   filter: saturate(1.06) contrast(1.03);
   will-change: transform;
+  background: transparent !important;
+  box-shadow: none !important;
+  mix-blend-mode: multiply !important;
 }
 
 /* the base is the box with its lid hidden away */

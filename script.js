@@ -167,9 +167,9 @@
     bloomStage.innerHTML = "";
     bloomStage.classList.remove("is-falling");
     var rng = mulberry32(20261014);
-    var COUNT = REDUCED ? 80 : 300;
+    var COUNT = REDUCED ? 80 : 450;
     var GOLDEN = Math.PI * (3 - Math.sqrt(5)); /* ≈ 137.5° */
-    var MAX_R = 80;                            /* expanded radius for wider spiral */
+    var MAX_R = Math.max(window.innerWidth, window.innerHeight) * 0.85;                            /* full viewport spiral radius */
     var frag = document.createDocumentFragment();
 
     for (var i = 0; i < COUNT; i++) {
