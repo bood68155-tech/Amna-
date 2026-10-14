@@ -7,500 +7,21 @@
   <title>For you, Amna</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;600;700&family=Caveat:wght@400;700&family=Shadows+Into+Light&display=swap" rel="stylesheet">
-  <style>
-    :root {
-      --red-900: #2b0a10;
-      --red-800: #3a0f16;
-      --red-700: #4a0f18;
-      --red-600: #5c1420;
-      --red-500: #6f1625;
-      --gold: #f5b63b;
-      --cream: #f7f3ea;
-      --paper: #f5f1ea;
-      --ink: #2b2418;
-    }
-
-    * {
-      box-sizing: border-box;
-      -webkit-font-smoothing: antialiased;
-      -moz-osx-font-smoothing: grayscale;
-      text-rendering: optimizeLegibility;
-    }
-
-    html,
-    body {
-      min-height: 100%;
-      margin: 0;
-      padding: 0;
-      font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
-      background: radial-gradient(1400px 900px at 50% 0%, #7c1c2b 0%, #4a0f18 55%, #2b0a10 100%);
-      background-attachment: fixed;
-      color: #fff7f7;
-      overflow-x: hidden;
-      overscroll-behavior-y: none;
-      -webkit-user-select: none;
-      user-select: none;
-      -webkit-touch-callout: none;
-      touch-action: manipulation;
-    }
-
-    img,
-    svg {
-      -webkit-user-drag: none;
-      pointer-events: none;
-    }
-
-    button,
-    [role="button"] {
-      pointer-events: auto;
-    }
-
-    /* ── continuous floating blurred background circles ─────────────────── */
-    .orb-field {
-      position: fixed;
-      inset: 0;
-      z-index: 0;
-      pointer-events: none;
-      overflow: hidden;
-    }
-
-    .orb {
-      position: absolute;
-      border-radius: 50%;
-      filter: blur(34px);
-      background: radial-gradient(circle at 35% 35%, rgba(255, 238, 246, 0.9), rgba(255, 92, 150, 0.3) 55%, rgba(255, 92, 150, 0) 72%);
-      will-change: transform;
-      animation-name: orbFloat;
-      animation-timing-function: ease-in-out;
-      animation-iteration-count: infinite;
-      opacity: 0.75;
-    }
-
-    @keyframes orbFloat {
-      0%,
-      100% {
-        transform: translate3d(0, 0, 0) scale(1);
-      }
-
-      50% {
-        transform: translate3d(26px, -44px, 0) scale(1.18);
-      }
-    }
-
-    /* ── screens ───────────────────────────────────────────────────────── */
-    .app {
-      position: relative;
-      z-index: 1;
-      min-height: 100svh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 24px 16px 56px;
-      gap: 28px;
-    }
-
-    .screen {
-      display: none;
-      width: min(680px, 100%);
-      flex-direction: column;
-      align-items: center;
-      gap: 20px;
-      text-align: center;
-    }
-
-    .screen.is-active {
-      display: flex;
-    }
-
-    #screen-box.is-active {
-      justify-content: center;
-      min-height: 78svh;
-    }
-
-    /* ── 1 · the gift box ──────────────────────────────────────────────── */
-    #gift-wrap {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 14px;
-      cursor: pointer;
-      -webkit-tap-highlight-color: transparent;
-      will-change: transform;
-      animation: giftIdle 4.4s ease-in-out infinite;
-    }
-
-    @keyframes giftIdle {
-      0%,
-      100% {
-        transform: translateY(0) rotate(-1.2deg);
-      }
-
-      50% {
-        transform: translateY(-10px) rotate(1.2deg);
-      }
-    }
-
-    .gift-photo {
-      position: relative;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    /* a soft halo so the box sits in its own pool of light */
-    #gift-glow {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      width: clamp(260px, 78vw, 420px);
-      aspect-ratio: 1 / 1;
-      border-radius: 50%;
-      background: radial-gradient(circle, rgba(255, 238, 214, 0.42) 0%, rgba(255, 170, 205, 0.2) 44%, rgba(255, 120, 170, 0) 72%);
-      filter: blur(6px);
-      pointer-events: none;
-    }
-
-    #gift-img {
-      position: relative;
-      width: clamp(190px, 46vw, 262px);
-      /* square crop centred on the wrapped box in the reference footage */
-      aspect-ratio: 1 / 1;
-      object-fit: cover;
-      object-position: 44% 50%;
-      border-radius: 18px;
-      box-shadow: 0 26px 54px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(255, 232, 240, 0.18);
-      filter: hue-rotate(-6deg) saturate(1.18) contrast(1.04);
-    }
-
-    .box-text {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-      font-family: "Dancing Script", cursive;
-      font-weight: 700;
-      font-size: clamp(18px, 4vw, 28px);
-      color: #fff7f7;
-      letter-spacing: 0.5px;
-      text-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
-    }
-
-    .box-sub {
-      font-weight: 600;
-      font-size: clamp(14px, 2.6vw, 18px);
-      opacity: 0.95;
-    }
-
-    /* the tap transition: box shrinks & fades while the bloom takes over */
-    #screen-box.is-opening #gift-wrap {
-      animation: giftOpen 0.75s cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
-    }
-
-    @keyframes giftOpen {
-      0% {
-        transform: translateY(0) scale(1);
-        opacity: 1;
-      }
-
-      22% {
-        transform: translateY(0) scale(1.08) rotate(-2deg);
-      }
-
-      100% {
-        transform: translateY(-26px) scale(0.24) rotate(6deg);
-        opacity: 0;
-      }
-    }
-
-    /* ── 2 · the cartoon flower spiral ─────────────────────────────────── */
-    #screen-bloom.is-active {
-      display: block;
-      width: 100%;
-    }
-
-    .bloom-stage {
-      position: fixed;
-      inset: 0;
-      overflow: hidden;
-      z-index: 1;
-      cursor: pointer;
-    }
-
-    #screen-bloom.is-active .bloom-stage {
-      animation: stageIn 0.6s ease-out both;
-    }
-
-    @keyframes stageIn {
-      from {
-        opacity: 0;
-      }
-
-      to {
-        opacity: 1;
-      }
-    }
-
-    .spiral-flower {
-      position: absolute;
-      width: var(--size, 64px);
-      height: var(--size, 64px);
-      margin: 0;
-      transform: translate(-50%, -50%) scale(0) rotate(-40deg);
-      opacity: 0;
-      animation: bloomIn 0.95s cubic-bezier(0.18, 1.28, 0.42, 1) both;
-      animation-delay: var(--delay, 0s);
-      will-change: transform, opacity;
-    }
-
-    .spiral-flower svg {
-      display: block;
-      width: 100%;
-      height: 100%;
-      filter: drop-shadow(0 6px 14px rgba(60, 0, 20, 0.35));
-      animation: flowerSway 6.5s ease-in-out infinite;
-      animation-delay: var(--delay, 0s);
-    }
-
-    @keyframes bloomIn {
-      0% {
-        transform: translate(-50%, -50%) scale(0) rotate(-40deg);
-        opacity: 0;
-      }
-
-      70% {
-        opacity: 1;
-      }
-
-      100% {
-        transform: translate(-50%, -50%) scale(1) rotate(0deg);
-        opacity: 1;
-      }
-    }
-
-    @keyframes flowerSway {
-      0%,
-      100% {
-        transform: rotate(-3deg) scale(1);
-      }
-
-      50% {
-        transform: rotate(3deg) scale(1.04);
-      }
-    }
-
-    /* ── 3 · the paper letter ──────────────────────────────────────────── */
-    #screen-letter.is-active {
-      gap: 28px;
-    }
-
-    .paper {
-      width: min(640px, 100%);
-      position: relative;
-      background:
-        radial-gradient(120% 120% at 50% 0%, rgba(255, 247, 220, 0.45) 0%, rgba(245, 241, 234, 0.95) 60%),
-        var(--paper);
-      color: var(--ink);
-      border-radius: 6px;
-      box-shadow: 0 30px 60px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.6);
-      padding: clamp(22px, 6vw, 44px) clamp(18px, 6vw, 48px);
-      text-align: left;
-      line-height: 1.9;
-      font-family: "Caveat", cursive;
-      font-weight: 700;
-      font-size: clamp(17px, 2.9vw, 22px);
-      letter-spacing: 0.4px;
-    }
-
-    .paper::before {
-      content: "";
-      position: absolute;
-      inset: 10px;
-      pointer-events: none;
-      border-radius: 4px;
-      background: radial-gradient(200% 200% at 50% 0%, rgba(255, 255, 255, 0.25) 0%, transparent 60%);
-    }
-
-    .paper-inner {
-      position: relative;
-      z-index: 1;
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-    }
-
-    .letter-line {
-      margin: 0;
-      min-height: 1.9em;
-      white-space: pre-wrap;
-      word-break: break-word;
-    }
-
-    /* the caret follows the character currently being typed */
-    .letter-line.is-typing::after {
-      content: "";
-      display: inline-block;
-      width: 2px;
-      height: 1.05em;
-      margin-left: 2px;
-      vertical-align: -0.16em;
-      background: currentColor;
-      animation: caret 1s steps(1, end) infinite;
-    }
-
-    @keyframes caret {
-      0%,
-      49% {
-        opacity: 1;
-      }
-
-      50%,
-      100% {
-        opacity: 0;
-      }
-    }
-
-    /* ── 4 · the gallery: clean frames, no ropes, clips or tape ────────── */
-    .gallery {
-      width: min(640px, 100%);
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: clamp(12px, 3vw, 18px);
-      align-items: start;
-      justify-items: center;
-      margin-top: clamp(14px, 4vw, 28px);
-    }
-
-    @media (max-width: 640px) {
-      .gallery {
-        grid-template-columns: repeat(2, 1fr);
-      }
-    }
-
-    @media (max-width: 420px) {
-      .gallery {
-        grid-template-columns: 1fr;
-      }
-    }
-
-    .vframe {
-      width: 100%;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .framed {
-      width: 100%;
-      background: linear-gradient(180deg, #ffffff 0%, #f5f1ea 100%);
-      padding: clamp(8px, 2vw, 11px);
-      border-radius: 4px;
-      position: relative;
-      box-shadow: 0 16px 36px rgba(0, 0, 0, 0.35), 0 2px 4px rgba(0, 0, 0, 0.25);
-      opacity: 0;
-      transform: translateY(24px) scale(0.94) rotate(var(--tilt, 0deg));
-      transition: transform 0.6s cubic-bezier(0.18, 1.28, 0.42, 1), opacity 0.6s ease-out;
-      transition-delay: var(--delay, 0s);
-    }
-
-    .vframe.is-in .framed {
-      opacity: 1;
-      transform: translateY(0) scale(1) rotate(var(--tilt, 0deg));
-    }
-
-    .framed::after {
-      content: "";
-      position: absolute;
-      inset: clamp(8px, 2vw, 11px);
-      pointer-events: none;
-      background: radial-gradient(120% 120% at 50% 0%, rgba(255, 255, 255, 0.18) 0%, transparent 60%);
-      mix-blend-mode: screen;
-    }
-
-    .framed img {
-      width: 100%;
-      height: auto;
-      display: block;
-      aspect-ratio: 1 / 1;
-      object-fit: cover;
-      filter: contrast(1.02) saturate(1.02);
-    }
-
-    /* ── paper buttons ─────────────────────────────────────────────────── */
-    .btn-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 12px;
-      justify-content: center;
-    }
-
-    .paper-btn {
-      position: relative;
-      appearance: none;
-      border: 0;
-      background: transparent;
-      color: #f5f1ea;
-      font-family: "Caveat", cursive;
-      font-weight: 800;
-      font-size: clamp(14px, 2.6vw, 18px);
-      letter-spacing: 0.6px;
-      padding: 12px 22px;
-      cursor: pointer;
-      -webkit-tap-highlight-color: transparent;
-    }
-
-    .paper-btn svg {
-      position: absolute;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      pointer-events: none;
-      overflow: visible;
-    }
-
-    .paper-btn .btn-text {
-      position: relative;
-      z-index: 1;
-      display: inline-block;
-    }
-
-    .paper-btn:active {
-      transform: translateY(1px);
-    }
-
-    :focus-visible {
-      outline: 2px solid var(--gold);
-      outline-offset: 3px;
-      border-radius: 6px;
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-      .orb,
-      #gift-wrap,
-      .spiral-flower,
-      .spiral-flower svg {
-        animation: none !important;
-      }
-
-      .spiral-flower {
-        opacity: 1;
-        transform: translate(-50%, -50%) scale(1);
-      }
-    }
-  </style>
+  <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;600;700&family=Caveat:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
 </head>
 
 <body>
   <div class="orb-field" id="orbField" aria-hidden="true"></div>
 
   <main class="app">
+    <!-- 1 · the white gift box with its pink ribbon, and a tap to open -->
     <section id="screen-box" class="screen is-active">
       <div id="gift-wrap" role="button" tabindex="0" aria-label="Open the gift">
         <div class="gift-photo">
           <span id="gift-glow" aria-hidden="true"></span>
-          <img id="gift-img" src="amna/5933832387462631394_121.jpg" alt="A red gift box, for you Amna"
-            onerror="this.onerror=null;this.src='amna/5933832387462631395_121.jpg'">
+          <img id="gift-img" src="amna/594047196022569129_120.jpg" alt="A white gift box tied with a pink ribbon"
+            onerror="this.onerror=null;this.src='amna/5933832387462631394_121.jpg'">
         </div>
         <div class="box-text">
           <span>For you, <em>Amna</em></span>
@@ -509,21 +30,21 @@
       </div>
     </section>
 
-    <section id="screen-bloom" class="screen">
+    <!-- 2 · cartoon flowers bloom in a spiral, then fall to the floor -->
+    <section id="screen-bloom" class="screen" aria-hidden="true">
       <div class="bloom-stage" id="bloomStage" aria-hidden="true"></div>
     </section>
 
-    <section id="screen-letter" class="screen">
-      <article class="paper">
-        <div class="paper-inner" id="letterBody">
+    <!-- 3 · the letter, typed line by line as you scroll -->
+    <section id="screen-letter" class="screen" aria-hidden="true">
+      <article class="parchment">
+        <div class="parchment-inner" id="letterBody">
           <p class="letter-line" data-text="To my dearest Amna,"></p>
-          <p class="letter-line" data-text="Every time I think of you, my heart fills with the sweetest warmth."></p>
-          <p class="letter-line" data-text="Your smile is like sunshine that brightens the dullest of days,"></p>
-          <p class="letter-line" data-text="and your kindness is a gift I will never take for granted."></p>
-          <p class="letter-line" data-text="I hope this little gesture brings as much joy to you"></p>
-          <p class="letter-line" data-text="as you bring into my life, today and always."></p>
-          <p class="letter-line" data-text="With all my love,"></p>
-          <p class="letter-line" data-text="Forever yours."></p>
+          <p class="letter-line" data-text="every time I think of you, my heart is filled with warmth."></p>
+          <p class="letter-line" data-text="Your smile is a gift to this world, and I'm so grateful to have you as a friend."></p>
+          <p class="letter-line" data-text="You make the days softer and kinder."></p>
+          <p class="letter-line" data-text="Hope this little gesture brings a bit of that sunshine to your day."></p>
+          <p class="letter-line" data-text="Stay bright. Your friend."></p>
         </div>
       </article>
 
@@ -586,6 +107,7 @@
 
       var phase = "box";
       var bloomTimer = 0;
+      var fallTimer = 0;
 
       /* ── deterministic pseudo random, so the layout is stable ────────── */
       function mulberry32(seed) {
@@ -614,7 +136,7 @@
           el.style.top = (rng() * 92 - 6).toFixed(2) + "%";
           el.style.animationDuration = (14 + rng() * 16).toFixed(1) + "s";
           el.style.animationDelay = "-" + (rng() * 20).toFixed(1) + "s";
-          el.style.opacity = (0.42 + rng() * 0.42).toFixed(2);
+          el.style.opacity = (0.4 + rng() * 0.4).toFixed(2);
           field.appendChild(el);
         }
       }
@@ -641,13 +163,16 @@
         return shape.join("");
       }
 
-      /* ── 2 · the spiral: flowers placed on a golden-angle phyllotaxis ── */
+      /* ── 2a · the spiral: flowers placed on a golden-angle phyllotaxis ─ */
+      var STEP_MS = 30;   /* stagger between neighbouring blooms */
+
       function buildSpiral() {
         bloomStage.innerHTML = "";
+        bloomStage.classList.remove("is-falling");
         var rng = mulberry32(20261014);
-        var COUNT = REDUCED ? 22 : 52;
+        var COUNT = REDUCED ? 22 : 48;
         var GOLDEN = Math.PI * (3 - Math.sqrt(5)); /* ≈ 137.5° */
-        var MAX_R = 47;                            /* vmin from the centre */
+        var MAX_R = 45;                            /* vmin from the centre */
         var frag = document.createDocumentFragment();
 
         for (var i = 0; i < COUNT; i++) {
@@ -663,29 +188,59 @@
           wrap.style.top = "calc(50% + " + dy.toFixed(2) + "vmin)";
           /* flowers grow from the centre outwards; bigger towards the rim */
           wrap.style.setProperty("--size", (38 + t * 42 + rng() * 14).toFixed(1) + "px");
-          wrap.style.setProperty("--delay", (i * 0.045).toFixed(3) + "s");
+          wrap.style.setProperty("--delay", (i * STEP_MS / 1000).toFixed(3) + "s");
           wrap.innerHTML = flowerSVG(rng);
           frag.appendChild(wrap);
         }
         bloomStage.appendChild(frag);
-        /* total time ≈ last delay + bloom duration */
-        return (COUNT - 1) * 45 + 950 + 550;
+        /* spiral is complete once the last bloom has opened */
+        return (COUNT - 1) * STEP_MS + 950;
       }
 
-      /* ── 3 · the letter types itself out, and jumps ahead as you scroll ─ */
+      /* ── 2b · the fall: every bloom lets go and drifts to the floor ──── */
+      function startFalling() {
+        var flowers = Array.prototype.slice.call(bloomStage.querySelectorAll(".spiral-flower"));
+        var vh = window.innerHeight || document.documentElement.clientHeight;
+        var longest = 0;
+
+        flowers.forEach(function (el, i) {
+          var box = el.getBoundingClientRect();
+          var centreY = box.top + box.height / 2;
+          /* land the bloom on the bottom edge of the screen */
+          var floorY = vh - box.height * 0.42;
+          var dy = Math.max(60, floorY - centreY);
+          var dir = i % 2 ? 1 : -1;
+
+          el.style.setProperty("--fall-y", dy.toFixed(1) + "px");
+          el.style.setProperty("--fall-x", (dir * (6 + (i * 13) % 30)).toFixed(0) + "px");
+          el.style.setProperty("--fall-spin", (dir * (120 + (i * 37) % 200)).toFixed(0) + "deg");
+          var delay = i * 0.016;
+          var dur = 1.1 + (i % 5) * 0.08;
+          el.style.setProperty("--fall-delay", delay.toFixed(3) + "s");
+          el.style.setProperty("--fall-dur", dur.toFixed(2) + "s");
+          /* the bloom is still in place — now let this one drop */
+          el.classList.add("is-falling");
+          longest = Math.max(longest, delay + dur);
+        });
+
+        bloomStage.classList.add("is-falling");
+        return REDUCED ? 400 : Math.max(900, Math.round(longest * 1000) + 260);
+      }
+
+      /* ── 3 · the letter types itself out, line by line, as you scroll ─ */
       var lineEls = [];
       var lineTexts = [];
       var totalChars = 0;
       var shownChars = 0;
-      var autotypeChars = 0;
+      var driftChars = 0;
       var tickTimer = 0;
-      var TICK_MS = 45;
-      var CHARS_PER_SECOND = 34;
+      var TICK_MS = 40;
+      var DRIFT_CPS = 7;   /* slow baseline so the note still reads itself */
 
       function scrollProgress() {
         var doc = document.documentElement;
         var max = doc.scrollHeight - window.innerHeight;
-        if (max <= 0) return 0;
+        if (max <= 0) return 1;
         return Math.max(0, Math.min(1, window.scrollY / max));
       }
 
@@ -724,13 +279,10 @@
         }
       }
 
-      /* real-time typewriter, driven by a timer so it keeps typing even
-         when the tab is throttled and there is nothing to scroll. */
       function typeTick() {
-        autotypeChars = Math.min(totalChars, autotypeChars + CHARS_PER_SECOND * TICK_MS / 1000);
-        /* scrolling down reveals the rest right away */
+        driftChars = Math.min(totalChars, driftChars + DRIFT_CPS * TICK_MS / 1000);
         var fromScroll = Math.round(scrollProgress() * totalChars);
-        applyTyping(Math.max(Math.floor(autotypeChars), fromScroll));
+        applyTyping(Math.max(Math.floor(driftChars), fromScroll));
       }
 
       function startTyping() {
@@ -738,13 +290,13 @@
         lineTexts = lineEls.map(function (el) { return el.getAttribute("data-text") || ""; });
         totalChars = lineTexts.reduce(function (a, s) { return a + s.length; }, 0);
         shownChars = 0;
-        autotypeChars = 0;
+        driftChars = 0;
         renderTyped(0);
         if (tickTimer) window.clearInterval(tickTimer);
         tickTimer = window.setInterval(typeTick, TICK_MS);
       }
 
-      /* ── 4 · clean photo frames ──────────────────────────────────────── */
+      /* ── 4 · the vintage photo frames ────────────────────────────────── */
       function buildGallery() {
         gallery.innerHTML = "";
         var rots = [-3, 2, -2, 3, -1.5, 2.5];
@@ -809,13 +361,20 @@
           screenBox.setAttribute("aria-hidden", "true");
         }, 720);
         window.clearTimeout(bloomTimer);
-        bloomTimer = window.setTimeout(goToLetter, REDUCED ? 500 : bloomMs);
+        bloomTimer = window.setTimeout(function () {
+          if (phase !== "bloom") return;
+          phase = "fall";
+          var fallMs = startFalling();
+          window.clearTimeout(fallTimer);
+          fallTimer = window.setTimeout(goToLetter, fallMs);
+        }, REDUCED ? 400 : bloomMs);
       }
 
       function goToLetter() {
+        window.clearTimeout(bloomTimer);
+        window.clearTimeout(fallTimer);
         if (phase === "letter") return;
         phase = "letter";
-        window.clearTimeout(bloomTimer);
         show(screenLetter);
         buildGallery();
         revealGallery();
@@ -850,6 +409,7 @@
         }
       });
 
+      /* scrolling down reveals the rest of the letter right away */
       window.addEventListener("scroll", function () {
         if (phase !== "letter" || !totalChars) return;
         applyTyping(Math.round(scrollProgress() * totalChars));
