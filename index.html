@@ -30,14 +30,15 @@
 
     html,
     body {
-      height: 100%;
+      min-height: 100%;
       margin: 0;
       padding: 0;
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
       background: radial-gradient(1400px 900px at 50% 0%, #7c1c2b 0%, #4a0f18 55%, #2b0a10 100%);
+      background-attachment: fixed;
       color: #fff7f7;
       overflow-x: hidden;
-      overscroll-behavior: none;
+      overscroll-behavior-y: none;
       -webkit-user-select: none;
       user-select: none;
       -webkit-touch-callout: none;
@@ -47,103 +48,47 @@
     img,
     svg {
       -webkit-user-drag: none;
-      user-drag: none;
       pointer-events: none;
     }
 
-    button {
+    button,
+    [role="button"] {
       pointer-events: auto;
     }
 
-    .bg-flowers {
+    /* ── continuous floating blurred background circles ─────────────────── */
+    .orb-field {
       position: fixed;
       inset: 0;
-      pointer-events: none;
       z-index: 0;
+      pointer-events: none;
       overflow: hidden;
-      opacity: 0.9;
     }
 
-    .bg-flower {
+    .orb {
       position: absolute;
-      width: clamp(48px, 8vw, 84px);
-      height: auto;
-      filter: drop-shadow(0 6px 18px rgba(0, 0, 0, 0.25));
-      animation-name: bgFloat;
+      border-radius: 50%;
+      filter: blur(34px);
+      background: radial-gradient(circle at 35% 35%, rgba(255, 238, 246, 0.9), rgba(255, 92, 150, 0.3) 55%, rgba(255, 92, 150, 0) 72%);
+      will-change: transform;
+      animation-name: orbFloat;
       animation-timing-function: ease-in-out;
       animation-iteration-count: infinite;
-      animation-fill-mode: both;
-      will-change: transform;
+      opacity: 0.75;
     }
 
-    .bg-flower.f1 {
-      left: 4%;
-      top: 8%;
-      animation-duration: 16s;
-      animation-delay: -2s;
-      transform-origin: 50% 80%;
-    }
-
-    .bg-flower.f2 {
-      right: 6%;
-      top: 14%;
-      animation-duration: 18s;
-      animation-delay: -6s;
-      transform-origin: 50% 80%;
-    }
-
-    .bg-flower.f3 {
-      left: 8%;
-      top: 38%;
-      animation-duration: 20s;
-      animation-delay: -10s;
-      transform-origin: 50% 80%;
-    }
-
-    .bg-flower.f4 {
-      right: 10%;
-      top: 46%;
-      animation-duration: 17s;
-      animation-delay: -4s;
-      transform-origin: 50% 80%;
-    }
-
-    .bg-flower.f5 {
-      left: 12%;
-      top: 68%;
-      animation-duration: 19s;
-      animation-delay: -8s;
-      transform-origin: 50% 80%;
-    }
-
-    .bg-flower.f6 {
-      right: 8%;
-      top: 76%;
-      animation-duration: 21s;
-      animation-delay: -12s;
-      transform-origin: 50% 80%;
-    }
-
-    @keyframes bgFloat {
-
+    @keyframes orbFloat {
       0%,
       100% {
-        transform: translateY(0px) translateX(0px) rotate(-4deg);
-      }
-
-      25% {
-        transform: translateY(-16px) translateX(8px) rotate(2deg);
+        transform: translate3d(0, 0, 0) scale(1);
       }
 
       50% {
-        transform: translateY(-8px) translateX(-6px) rotate(-2deg);
-      }
-
-      75% {
-        transform: translateY(-20px) translateX(4px) rotate(4deg);
+        transform: translate3d(26px, -44px, 0) scale(1.18);
       }
     }
 
+    /* ── screens ───────────────────────────────────────────────────────── */
     .app {
       position: relative;
       z-index: 1;
@@ -151,45 +96,82 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 24px 16px 48px;
+      padding: 24px 16px 56px;
       gap: 28px;
     }
 
     .screen {
+      display: none;
       width: min(680px, 100%);
-      display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 18px;
+      gap: 20px;
       text-align: center;
     }
 
-    .screen[hidden] {
-      display: none !important;
+    .screen.is-active {
+      display: flex;
     }
 
-    #screen-box {
+    #screen-box.is-active {
       justify-content: center;
-      min-height: 80svh;
+      min-height: 78svh;
     }
 
+    /* ── 1 · the gift box ──────────────────────────────────────────────── */
     #gift-wrap {
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 12px;
+      gap: 14px;
       cursor: pointer;
       -webkit-tap-highlight-color: transparent;
       will-change: transform;
+      animation: giftIdle 4.4s ease-in-out infinite;
+    }
+
+    @keyframes giftIdle {
+      0%,
+      100% {
+        transform: translateY(0) rotate(-1.2deg);
+      }
+
+      50% {
+        transform: translateY(-10px) rotate(1.2deg);
+      }
+    }
+
+    .gift-photo {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* a soft halo so the box sits in its own pool of light */
+    #gift-glow {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: clamp(260px, 78vw, 420px);
+      aspect-ratio: 1 / 1;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(255, 238, 214, 0.42) 0%, rgba(255, 170, 205, 0.2) 44%, rgba(255, 120, 170, 0) 72%);
+      filter: blur(6px);
+      pointer-events: none;
     }
 
     #gift-img {
-      width: clamp(140px, 22vw, 200px);
-      height: auto;
-      filter: hue-rotate(-8deg) saturate(1.25) brightness(0.98) contrast(1.05);
-      drop-shadow(0 18px 40px rgba(0, 0, 0, 0.35));
-      image-rendering: -webkit-optimize-contrast;
-      image-rendering: crisp-edges;
+      position: relative;
+      width: clamp(190px, 46vw, 262px);
+      /* square crop centred on the wrapped box in the reference footage */
+      aspect-ratio: 1 / 1;
+      object-fit: cover;
+      object-position: 44% 50%;
+      border-radius: 18px;
+      box-shadow: 0 26px 54px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(255, 232, 240, 0.18);
+      filter: hue-rotate(-6deg) saturate(1.18) contrast(1.04);
     }
 
     .box-text {
@@ -200,8 +182,8 @@
       font-weight: 700;
       font-size: clamp(18px, 4vw, 28px);
       color: #fff7f7;
-      text-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
       letter-spacing: 0.5px;
+      text-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
     }
 
     .box-sub {
@@ -210,155 +192,106 @@
       opacity: 0.95;
     }
 
-    .bloom-wrap {
-      position: relative;
-      width: min(680px, 100%);
-      aspect-ratio: 16/10;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+    /* the tap transition: box shrinks & fades while the bloom takes over */
+    #screen-box.is-opening #gift-wrap {
+      animation: giftOpen 0.75s cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
     }
 
-    #bloom-svg {
+    @keyframes giftOpen {
+      0% {
+        transform: translateY(0) scale(1);
+        opacity: 1;
+      }
+
+      22% {
+        transform: translateY(0) scale(1.08) rotate(-2deg);
+      }
+
+      100% {
+        transform: translateY(-26px) scale(0.24) rotate(6deg);
+        opacity: 0;
+      }
+    }
+
+    /* ── 2 · the cartoon flower spiral ─────────────────────────────────── */
+    #screen-bloom.is-active {
+      display: block;
+      width: 100%;
+    }
+
+    .bloom-stage {
+      position: fixed;
+      inset: 0;
+      overflow: hidden;
+      z-index: 1;
+      cursor: pointer;
+    }
+
+    #screen-bloom.is-active .bloom-stage {
+      animation: stageIn 0.6s ease-out both;
+    }
+
+    @keyframes stageIn {
+      from {
+        opacity: 0;
+      }
+
+      to {
+        opacity: 1;
+      }
+    }
+
+    .spiral-flower {
+      position: absolute;
+      width: var(--size, 64px);
+      height: var(--size, 64px);
+      margin: 0;
+      transform: translate(-50%, -50%) scale(0) rotate(-40deg);
+      opacity: 0;
+      animation: bloomIn 0.95s cubic-bezier(0.18, 1.28, 0.42, 1) both;
+      animation-delay: var(--delay, 0s);
+      will-change: transform, opacity;
+    }
+
+    .spiral-flower svg {
+      display: block;
       width: 100%;
       height: 100%;
-      overflow: visible;
-      filter: drop-shadow(0 12px 28px rgba(0, 0, 0, 0.25));
+      filter: drop-shadow(0 6px 14px rgba(60, 0, 20, 0.35));
+      animation: flowerSway 6.5s ease-in-out infinite;
+      animation-delay: var(--delay, 0s);
     }
 
-    .petal,
-    .leaf,
-    .core,
-    .blade {
-      transform-origin: 50% 100%;
-      transform-box: fill-box;
-      opacity: 0;
-    }
-
-    .stem {
-      stroke-dasharray: 1 1;
-      stroke-dashoffset: 1;
-      opacity: 0.95;
-    }
-
-    .bloom-wrap.revealed .stem {
-      animation: drawStem 1.2s ease-out forwards;
-    }
-
-    .bloom-wrap.revealed .blade {
-      animation: growBlade 0.9s ease-out forwards;
-    }
-
-    .bloom-wrap.revealed .petal {
-      animation: openPetal 1.0s cubic-bezier(0.25, 0.8, 0.25, 1.25) forwards;
-    }
-
-    .bloom-wrap.revealed .core {
-      animation: popCore 0.6s ease-out forwards;
-    }
-
-    .bloom-wrap.revealed .sway {
-      animation: sway 6s ease-in-out infinite;
-      transform-origin: 50% 90%;
-    }
-
-    @keyframes drawStem {
-      to {
-        stroke-dashoffset: 0;
-      }
-    }
-
-    @keyframes growBlade {
+    @keyframes bloomIn {
       0% {
-        transform: scaleY(0.25);
+        transform: translate(-50%, -50%) scale(0) rotate(-40deg);
         opacity: 0;
       }
 
-      100% {
-        transform: scaleY(1);
-        opacity: 1;
-      }
-    }
-
-    @keyframes openPetal {
-      0% {
-        transform: scale(0.4) rotate(-12deg);
-        opacity: 0;
-      }
-
-      60% {
-        transform: scale(1.06) rotate(4deg);
+      70% {
         opacity: 1;
       }
 
       100% {
-        transform: scale(1) rotate(0deg);
+        transform: translate(-50%, -50%) scale(1) rotate(0deg);
         opacity: 1;
       }
     }
 
-    @keyframes popCore {
-      0% {
-        transform: scale(0.5);
-        opacity: 0;
-      }
-
-      80% {
-        transform: scale(1.12);
-        opacity: 1;
-      }
-
-      100% {
-        transform: scale(1);
-        opacity: 1;
-      }
-    }
-
-    @keyframes sway {
-
+    @keyframes flowerSway {
       0%,
       100% {
-        transform: rotate(-2deg);
+        transform: rotate(-3deg) scale(1);
       }
 
       50% {
-        transform: rotate(2deg);
+        transform: rotate(3deg) scale(1.04);
       }
     }
 
-    .bloom-skip {
-      margin-top: 8px;
-      background: transparent;
-      border: 0;
-      color: #fff7f7;
-      font-family: "Dancing Script", cursive;
-      font-weight: 700;
-      font-size: clamp(14px, 2.6vw, 18px);
-      text-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
-      cursor: pointer;
-      -webkit-tap-highlight-color: transparent;
-    }
-
-    #screen-letter {
+    /* ── 3 · the paper letter ──────────────────────────────────────────── */
+    #screen-letter.is-active {
       gap: 28px;
-    }
-
-      width: min(640px, 100%);
-      position: relative;
-      background:
-        radial-gradient(120% 120% at 50% 0%, rgba(255, 247, 220, 0.4) 0%, rgba(245, 241, 234, 0.9) 60%),
-        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160' viewBox='0 0 160 160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='0.06'/%3E%3C/svg%3E");
-      background-size: 100% 100%, 160px 160px;
-      color: var(--ink);
-      border-radius: 6px;
-      box-shadow: 0 30px 60px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.6);
-      padding: clamp(22px, 6vw, 44px) clamp(18px, 6vw, 48px);
-      text-align: left;
-      line-height: 1.9;
-      font-family: "Caveat", cursive;
-      font-weight: 700;
-      font-size: clamp(16px, 2.8vw, 22px);
-      letter-spacing: 0.4px;
     }
 
     .paper {
@@ -366,8 +299,7 @@
       position: relative;
       background:
         radial-gradient(120% 120% at 50% 0%, rgba(255, 247, 220, 0.45) 0%, rgba(245, 241, 234, 0.95) 60%),
-        #f5f1ea;
-      background-size: 100% 100%, 100% 100%;
+        var(--paper);
       color: var(--ink);
       border-radius: 6px;
       box-shadow: 0 30px 60px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.6);
@@ -376,7 +308,7 @@
       line-height: 1.9;
       font-family: "Caveat", cursive;
       font-weight: 700;
-      font-size: clamp(16px, 2.8vw, 22px);
+      font-size: clamp(17px, 2.9vw, 22px);
       letter-spacing: 0.4px;
     }
 
@@ -394,21 +326,41 @@
       z-index: 1;
       display: flex;
       flex-direction: column;
-      gap: 18px;
+      gap: 16px;
     }
 
     .letter-line {
-      opacity: 0;
-      transform: translateY(6px);
-      transition: opacity 0.8s ease-out, transform 0.8s ease-out;
-      will-change: opacity, transform;
+      margin: 0;
+      min-height: 1.9em;
+      white-space: pre-wrap;
+      word-break: break-word;
     }
 
-    .letter-line.visible {
-      opacity: 1;
-      transform: translateY(0px);
+    /* the caret follows the character currently being typed */
+    .letter-line.is-typing::after {
+      content: "";
+      display: inline-block;
+      width: 2px;
+      height: 1.05em;
+      margin-left: 2px;
+      vertical-align: -0.16em;
+      background: currentColor;
+      animation: caret 1s steps(1, end) infinite;
     }
 
+    @keyframes caret {
+      0%,
+      49% {
+        opacity: 1;
+      }
+
+      50%,
+      100% {
+        opacity: 0;
+      }
+    }
+
+    /* ── 4 · the gallery: clean frames, no ropes, clips or tape ────────── */
     .gallery {
       width: min(640px, 100%);
       display: grid;
@@ -416,6 +368,7 @@
       gap: clamp(12px, 3vw, 18px);
       align-items: start;
       justify-items: center;
+      margin-top: clamp(14px, 4vw, 28px);
     }
 
     @media (max-width: 640px) {
@@ -436,22 +389,30 @@
       flex-direction: column;
       align-items: center;
       gap: 8px;
-      perspective: 800px;
     }
 
     .framed {
       width: 100%;
-      background: linear-gradient(180deg, #faf7f0 0%, #f5f1ea 100%);
-      padding: clamp(8px, 2vw, 10px) clamp(8px, 2vw, 10px) clamp(14px, 3vw, 16px);
-      box-shadow: 0 16px 36px rgba(0, 0, 0, 0.35), 0 2px 4px rgba(0, 0, 0, 0.25);
+      background: linear-gradient(180deg, #ffffff 0%, #f5f1ea 100%);
+      padding: clamp(8px, 2vw, 11px);
       border-radius: 4px;
       position: relative;
+      box-shadow: 0 16px 36px rgba(0, 0, 0, 0.35), 0 2px 4px rgba(0, 0, 0, 0.25);
+      opacity: 0;
+      transform: translateY(24px) scale(0.94) rotate(var(--tilt, 0deg));
+      transition: transform 0.6s cubic-bezier(0.18, 1.28, 0.42, 1), opacity 0.6s ease-out;
+      transition-delay: var(--delay, 0s);
+    }
+
+    .vframe.is-in .framed {
+      opacity: 1;
+      transform: translateY(0) scale(1) rotate(var(--tilt, 0deg));
     }
 
     .framed::after {
       content: "";
       position: absolute;
-      inset: clamp(8px, 2vw, 10px);
+      inset: clamp(8px, 2vw, 11px);
       pointer-events: none;
       background: radial-gradient(120% 120% at 50% 0%, rgba(255, 255, 255, 0.18) 0%, transparent 60%);
       mix-blend-mode: screen;
@@ -461,29 +422,12 @@
       width: 100%;
       height: auto;
       display: block;
-      aspect-ratio: 1/1;
+      aspect-ratio: 1 / 1;
       object-fit: cover;
       filter: contrast(1.02) saturate(1.02);
     }
 
-    .vframe-go {
-      width: 100%;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 8px;
-      perspective: 800px;
-    }
-
-    .polaroid img {
-      width: 100%;
-      height: auto;
-      display: block;
-      aspect-ratio: 1/1;
-      object-fit: cover;
-      filter: contrast(1.02) saturate(1.02);
-    }
-
+    /* ── paper buttons ─────────────────────────────────────────────────── */
     .btn-row {
       display: flex;
       flex-wrap: wrap;
@@ -496,16 +440,14 @@
       appearance: none;
       border: 0;
       background: transparent;
-      color: var(--ink);
+      color: #f5f1ea;
       font-family: "Caveat", cursive;
       font-weight: 800;
       font-size: clamp(14px, 2.6vw, 18px);
       letter-spacing: 0.6px;
-      padding: 10px 18px;
+      padding: 12px 22px;
       cursor: pointer;
       -webkit-tap-highlight-color: transparent;
-      filter: sepia(0.25) contrast(1.05);
-      text-shadow: 0 1px 0 rgba(255, 255, 255, 0.4);
     }
 
     .paper-btn svg {
@@ -526,119 +468,40 @@
     .paper-btn:active {
       transform: translateY(1px);
     }
-    .particles {
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
-      z-index: 0;
-      overflow: hidden;
+
+    :focus-visible {
+      outline: 2px solid var(--gold);
+      outline-offset: 3px;
+      border-radius: 6px;
     }
 
-    .particle {
-      position: absolute;
-      border-radius: 50%;
-      background: radial-gradient(circle at 35% 35%, rgba(255, 236, 244, 0.85), rgba(255, 236, 244, 0.15));
-      filter: blur(28px);
-      will-change: transform, opacity;
-      opacity: 0;
-      animation-name: particleLife;
-      animation-timing-function: ease-in-out;
-      animation-iteration-count: infinite;
-      animation-fill-mode: both;
-    }
+    @media (prefers-reduced-motion: reduce) {
+      .orb,
+      #gift-wrap,
+      .spiral-flower,
+      .spiral-flower svg {
+        animation: none !important;
+      }
 
-    @keyframes particleLife {
-      0% {
-        opacity: 0;
-        transform: translateY(0) scale(0.4);
-      }
-      12% {
-        opacity: 0.9;
-      }
-      70% {
-        opacity: 0.7;
-      }
-      100% {
-        opacity: 0;
-        transform: translateY(calc(100vh + 120px)) scale(1.1);
+      .spiral-flower {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
       }
     }
-
   </style>
 </head>
 
 <body>
-  <div class="bg-flowers" aria-hidden="true">
-    <svg class="bg-flower f1" viewBox="0 0 120 120">
-      <g transform="translate(60,70)">
-        <ellipse cx="0" cy="28" rx="6" ry="22" fill="#5a8c3a" />
-        <circle cx="-10" cy="18" r="8" fill="#7fb24a" />
-        <circle cx="10" cy="16" r="8" fill="#7fb24a" />
-        <g transform="rotate(0)">
-          <ellipse cx="0" cy="-18" rx="18" ry="10" fill="#d62839" />
-          <ellipse cx="0" cy="-18" rx="10" ry="18" fill="#d62839" />
-        </g>
-        <circle cx="0" cy="-18" r="6" fill="#f5b63b" />
-      </g>
-    </svg>
-    <svg class="bg-flower f2" viewBox="0 0 120 120">
-      <g transform="translate(60,70)">
-        <ellipse cx="0" cy="28" rx="6" ry="22" fill="#5a8c3a" />
-        <circle cx="0" cy="-20" r="16" fill="#f8f9fa" />
-        <circle cx="-14" cy="-12" r="12" fill="#f8f9fa" />
-        <circle cx="14" cy="-12" r="12" fill="#f8f9fa" />
-        <circle cx="0" cy="-6" r="12" fill="#f8f9fa" />
-        <circle cx="0" cy="-12" r="6" fill="#f5b63b" />
-      </g>
-    </svg>
-    <svg class="bg-flower f3" viewBox="0 0 120 120">
-      <g transform="translate(60,70)">
-        <ellipse cx="0" cy="28" rx="6" ry="22" fill="#5a8c3a" />
-        <circle cx="-12" cy="-14" r="10" fill="#d62839" />
-        <circle cx="12" cy="-14" r="10" fill="#d62839" />
-        <circle cx="0" cy="-24" r="10" fill="#d62839" />
-        <circle cx="0" cy="-10" r="10" fill="#d62839" />
-        <circle cx="0" cy="-16" r="5" fill="#f5b63b" />
-      </g>
-    </svg>
-    <svg class="bg-flower f4" viewBox="0 0 120 120">
-      <g transform="translate(60,70)">
-        <ellipse cx="0" cy="28" rx="6" ry="22" fill="#5a8c3a" />
-        <circle cx="0" cy="-16" r="14" fill="#f8f9fa" />
-        <circle cx="-12" cy="-10" r="10" fill="#f8f9fa" />
-        <circle cx="12" cy="-10" r="10" fill="#f8f9fa" />
-        <circle cx="0" cy="-4" r="10" fill="#f8f9fa" />
-        <circle cx="0" cy="-10" r="5" fill="#f5b63b" />
-      </g>
-    </svg>
-    <svg class="bg-flower f5" viewBox="0 0 120 120">
-      <g transform="translate(60,70)">
-        <ellipse cx="0" cy="28" rx="6" ry="22" fill="#5a8c3a" />
-        <circle cx="-10" cy="-16" r="9" fill="#f5b63b" />
-        <circle cx="10" cy="-16" r="9" fill="#f5b63b" />
-        <circle cx="0" cy="-26" r="9" fill="#f5b63b" />
-        <circle cx="0" cy="-8" r="9" fill="#f5b63b" />
-        <circle cx="0" cy="-16" r="6" fill="#d62839" />
-      </g>
-    </svg>
-    <svg class="bg-flower f6" viewBox="0 0 120 120">
-      <g transform="translate(60,70)">
-        <ellipse cx="0" cy="28" rx="6" ry="22" fill="#5a8c3a" />
-        <circle cx="0" cy="-18" r="16" fill="#d62839" />
-        <circle cx="-12" cy="-10" r="12" fill="#d62839" />
-        <circle cx="12" cy="-10" r="12" fill="#d62839" />
-        <circle cx="0" cy="-4" r="12" fill="#d62839" />
-        <circle cx="0" cy="-10" r="6" fill="#f5b63b" />
-      </g>
-    </svg>
-  </div>
-
-  <div class="particles" id="particles" aria-hidden="true"></div>
+  <div class="orb-field" id="orbField" aria-hidden="true"></div>
 
   <main class="app">
-    <section id="screen-box" class="screen">
-      <div id="gift-wrap" role="button" tabindex="0" aria-label="Open gift">
-        <img id="gift-img" src="amna/594047196022569129_120.jpg" alt="For you, Amna gift box" onerror="this.onerror=null; this.src='amna/5933832387462631394_121.jpg'" onload="this.classList.add('ready')">
+    <section id="screen-box" class="screen is-active">
+      <div id="gift-wrap" role="button" tabindex="0" aria-label="Open the gift">
+        <div class="gift-photo">
+          <span id="gift-glow" aria-hidden="true"></span>
+          <img id="gift-img" src="amna/5933832387462631394_121.jpg" alt="A red gift box, for you Amna"
+            onerror="this.onerror=null;this.src='amna/5933832387462631395_121.jpg'">
+        </div>
         <div class="box-text">
           <span>For you, <em>Amna</em></span>
           <span class="box-sub">(tap to open)</span>
@@ -646,41 +509,36 @@
       </div>
     </section>
 
-    <section id="screen-bloom" class="screen" hidden>
-      <div class="bloom-wrap" id="bloomWrap">
-        <img id="tunnel-img" src="amna/5933832387462631395_121.jpg" alt="Flower tunnel art" hidden onerror="this.onerror=null; this.hidden=false; this.style.opacity=1" style="position:absolute; inset:0; width:100%; height:100%; object-fit:cover; opacity:0; transition:opacity 1.1s ease-out;">
-        <svg id="bloom-svg" viewBox="0 0 680 420" preserveAspectRatio="xMidYMid meet"></svg>
-      </div>
-      <button class="bloom-skip" id="skipBloom">Skip animation</button>
+    <section id="screen-bloom" class="screen">
+      <div class="bloom-stage" id="bloomStage" aria-hidden="true"></div>
     </section>
 
-    <section id="screen-letter" class="screen" hidden>
+    <section id="screen-letter" class="screen">
       <article class="paper">
         <div class="paper-inner" id="letterBody">
-          <p class="letter-line">To my dearest Amna,</p>
-          <p class="letter-line">Every time I think of you, my heart fills with the sweetest warmth.</p>
-          <p class="letter-line">Your smile is like sunshine that brightens the dullest of days,</p>
-          <p class="letter-line">and your kindness is a gift I will never take for granted.</p>
-          <p class="letter-line">I hope this little gesture brings as much joy to you</p>
-          <p class="letter-line">as you bring into my life, today and always.</p>
-          <p class="letter-line">With all my love,</p>
-          <p class="letter-line">Forever yours.</p>
-          <span id="typing-cursor"></span>
-        
+          <p class="letter-line" data-text="To my dearest Amna,"></p>
+          <p class="letter-line" data-text="Every time I think of you, my heart fills with the sweetest warmth."></p>
+          <p class="letter-line" data-text="Your smile is like sunshine that brightens the dullest of days,"></p>
+          <p class="letter-line" data-text="and your kindness is a gift I will never take for granted."></p>
+          <p class="letter-line" data-text="I hope this little gesture brings as much joy to you"></p>
+          <p class="letter-line" data-text="as you bring into my life, today and always."></p>
+          <p class="letter-line" data-text="With all my love,"></p>
+          <p class="letter-line" data-text="Forever yours."></p>
+        </div>
       </article>
 
       <div class="gallery" id="gallery"></div>
 
       <div class="btn-row">
         <button class="paper-btn" id="btn-replay" aria-label="Play again">
-          <svg viewBox="0 0 140 44" preserveAspectRatio="none">
+          <svg viewBox="0 0 140 44" preserveAspectRatio="none" aria-hidden="true">
             <path d="M 6 6 L 134 4 L 136 22 L 132 40 L 8 38 L 4 20 Z" fill="#f5f1ea" stroke="#4a3720" stroke-width="2" />
             <path d="M 10 10 L 130 8 L 132 22 L 128 36 L 12 34 L 8 22 Z" fill="none" stroke="#7d6440" stroke-width="1" opacity="0.6" />
           </svg>
           <span class="btn-text">Play Again</span>
         </button>
-        <button class="paper-btn" id="btn-copy" aria-label="Copy link">
-          <svg viewBox="0 0 140 44" preserveAspectRatio="none">
+        <button class="paper-btn" id="btn-copy" aria-label="Copy this link">
+          <svg viewBox="0 0 140 44" preserveAspectRatio="none" aria-hidden="true">
             <path d="M 6 6 L 134 4 L 136 22 L 132 40 L 8 38 L 4 20 Z" fill="#f5f1ea" stroke="#4a3720" stroke-width="2" />
             <path d="M 10 10 L 130 8 L 132 22 L 128 36 L 12 34 L 8 22 Z" fill="none" stroke="#7d6440" stroke-width="1" opacity="0.6" />
           </svg>
@@ -690,245 +548,323 @@
     </section>
   </main>
 
-
   <script>
-    const BOUQUETS = [
-      "amna/5936084187276316915_121.jpg",
-      "amna/5936084187276316916_120.jpg",
-      "amna/5936084187276316917_121.jpg",
-      "amna/5936084187276316918_120.jpg",
-      "amna/5936084187276316920_121.jpg",
-      "amna/5936084187276316921_121.jpg"
-    ];
+    (function () {
+      "use strict";
 
-    const giftWrap = document.getElementById("gift-wrap");
-    const screenBox = document.getElementById("screen-box");
-    const screenBloom = document.getElementById("screen-bloom");
-    const screenLetter = document.getElementById("screen-letter");
-    const bloomWrap = document.getElementById("bloomWrap");
-    const bloomSvg = document.getElementById("bloom-svg");
-    const skipBloom = document.getElementById("skipBloom");
-    const gallery = document.getElementById("gallery");
-    const btnReplay = document.getElementById("btn-replay");
-    const btnCopy = document.getElementById("btn-copy");
-    const copyText = document.getElementById("copyText");
-    let bloomStarted = false;
-    let bloomDone = false;
-
-    giftWrap.addEventListener("click", openGift);
-    giftWrap.addEventListener("keydown", (e) => {
-      if (e.key === "Enter" || e.key === " ") {
-        e.preventDefault();
-        openGift();
-      }
-    });
-
-    function openGift() {
-      screenBox.setAttribute("hidden", "");
-      screenBloom.removeAttribute("hidden");
-      startBloom();
-    }
-
-    skipBloom.addEventListener("click", goToLetter);
-
-    btnReplay.addEventListener("click", () => {
-      location.reload();
-    });
-
-    btnCopy.addEventListener("click", async () => {
-      try {
-        await navigator.clipboard.writeText(location.href);
-        const old = copyText.textContent;
-        copyText.textContent = "Copied!";
-        setTimeout(() => copyText.textContent = old, 1200);
-      } catch (e) {
-        const old = copyText.textContent;
-        copyText.textContent = "Copied!";
-        setTimeout(() => copyText.textContent = old, 1200);
-      }
-    });
-
-    function buildBloom() {
-      const flowers = [
-        { cx: 160, cy: 320, scale: 0.9, rot: -6 },
-        { cx: 340, cy: 340, scale: 1.0, rot: 4 },
-        { cx: 520, cy: 320, scale: 0.92, rot: -4 },
-        { cx: 250, cy: 280, scale: 0.8, rot: 6 },
-        { cx: 420, cy: 290, scale: 0.78, rot: -8 }
+      var BOUQUETS = [
+        "amna/5936084187276316915_121.jpg",
+        "amna/5936084187276316916_120.jpg",
+        "amna/5936084187276316917_121.jpg",
+        "amna/5936084187276316918_120.jpg",
+        "amna/5936084187276316920_121.jpg",
+        "amna/5936084187276316921_121.jpg"
       ];
-      let g = document.createElementNS("http://www.w3.org/2000/svg", "g");
-      g.setAttribute("class", "sway");
-      bloomSvg.appendChild(g);
 
-      const grass = document.createElementNS("http://www.w3.org/2000/svg", "g");
-      for (let i = 0; i < 28; i++) {
-        const x = 40 + i * 22;
-        const h = 60 + (i % 5) * 12;
-        const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-        path.setAttribute("class", "blade");
-        path.setAttribute("d", `M ${x} 380 L ${x + (i % 3) - 1} 380-${h}`);
-        path.setAttribute("stroke", "#3f7c32");
-        path.setAttribute("stroke-width", "6");
-        path.setAttribute("stroke-linecap", "round");
-        path.setAttribute("fill", "none");
-        path.style.animationDelay = (i * 40) + "ms";
-        grass.appendChild(path);
+      /* cartoon flower palette — mirrored from the reference video */
+      var PALETTE = [
+        { petal: "#d62839", edge: "#8f0f21", core: "#f5b63b" }, /* red    */
+        { petal: "#ff6f9c", edge: "#c93b6c", core: "#fff2f7" }, /* pink   */
+        { petal: "#fff7f7", edge: "#d9c6cd", core: "#f5b63b" }, /* white  */
+        { petal: "#f5b63b", edge: "#c8871a", core: "#d62839" }, /* gold   */
+        { petal: "#5b8dfa", edge: "#2f5bc4", core: "#fff7f7" }, /* blue   */
+        { petal: "#6fbf4a", edge: "#3f7c32", core: "#f5b63b" }  /* green  */
+      ];
+
+      var REDUCED = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+      var screenBox = document.getElementById("screen-box");
+      var screenBloom = document.getElementById("screen-bloom");
+      var screenLetter = document.getElementById("screen-letter");
+      var giftWrap = document.getElementById("gift-wrap");
+      var bloomStage = document.getElementById("bloomStage");
+      var gallery = document.getElementById("gallery");
+      var btnReplay = document.getElementById("btn-replay");
+      var btnCopy = document.getElementById("btn-copy");
+      var copyText = document.getElementById("copyText");
+      var letterBody = document.getElementById("letterBody");
+
+      var phase = "box";
+      var bloomTimer = 0;
+
+      /* ── deterministic pseudo random, so the layout is stable ────────── */
+      function mulberry32(seed) {
+        var a = seed >>> 0;
+        return function () {
+          a = (a + 0x6D2B79F5) | 0;
+          var t = Math.imul(a ^ (a >>> 15), 1 | a);
+          t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+          return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+        };
       }
-      bloomSvg.appendChild(grass);
 
-      flowers.forEach((f, idx) => {
-        const fg = document.createElementNS("http://www.w3.org/2000/svg", "g");
-        fg.setAttribute("transform", `translate(${f.cx},${f.cy}) scale(${f.scale}) rotate(${f.rot})`);
+      /* ── continuous floating blurred background circles ─────────────── */
+      function buildOrbs() {
+        var field = document.getElementById("orbField");
+        if (!field || field.childElementCount) return;
+        var rng = mulberry32(90210);
+        var count = REDUCED ? 6 : 14;
+        for (var i = 0; i < count; i++) {
+          var el = document.createElement("span");
+          el.className = "orb";
+          var size = 90 + rng() * 210;
+          el.style.width = size.toFixed(0) + "px";
+          el.style.height = size.toFixed(0) + "px";
+          el.style.left = (rng() * 92 - 6).toFixed(2) + "%";
+          el.style.top = (rng() * 92 - 6).toFixed(2) + "%";
+          el.style.animationDuration = (14 + rng() * 16).toFixed(1) + "s";
+          el.style.animationDelay = "-" + (rng() * 20).toFixed(1) + "s";
+          el.style.opacity = (0.42 + rng() * 0.42).toFixed(2);
+          field.appendChild(el);
+        }
+      }
 
-        const stem = document.createElementNS("http://www.w3.org/2000/svg", "line");
-        stem.setAttribute("class", "stem");
-        stem.setAttribute("x1", "0");
-        stem.setAttribute("y1", "0");
-        stem.setAttribute("x2", "0");
-        stem.setAttribute("y2", "-120");
-        stem.setAttribute("stroke", "#2f6b2a");
-        stem.setAttribute("stroke-width", "10");
-        stem.setAttribute("stroke-linecap", "round");
-        stem.style.animationDelay = (idx * 200) + "ms";
-        fg.appendChild(stem);
+      /* ── one cartoon flower, drawn as SVG ───────────────────────────── */
+      function flowerSVG(rng) {
+        var pal = PALETTE[Math.floor(rng() * PALETTE.length)];
+        var petals = 5 + Math.floor(rng() * 4);
+        var step = 360 / petals;
+        var spin = rng() * 360;
+        var shape = [];
+        shape.push('<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg" role="presentation">');
+        shape.push('<g transform="translate(60,60) rotate(' + spin.toFixed(1) + ')">');
+        /* two leaves tucked under the bloom */
+        shape.push('<ellipse cx="-20" cy="28" rx="9" ry="19" fill="#4f9a3c" transform="rotate(-38 -20 28)"/>');
+        shape.push('<ellipse cx="20" cy="28" rx="9" ry="19" fill="#3f7c32" transform="rotate(38 20 28)"/>');
+        for (var i = 0; i < petals; i++) {
+          var a = (i * step).toFixed(2);
+          shape.push('<ellipse cx="0" cy="-26" rx="13.5" ry="26" fill="' + pal.petal +
+            '" stroke="' + pal.edge + '" stroke-width="1.6" transform="rotate(' + a + ')"/>');
+        }
+        shape.push('<circle r="13" fill="' + pal.core + '" stroke="' + pal.edge + '" stroke-width="1.6"/>');
+        shape.push('</g></svg>');
+        return shape.join("");
+      }
 
-        const petals = [
-          { ang: 0, fill: "#d62839" },
-          { ang: 60, fill: "#f8f9fa" },
-          { ang: 120, fill: "#f5b63b" },
-          { ang: 180, fill: "#d62839" },
-          { ang: 240, fill: "#f8f9fa" },
-          { ang: 300, fill: "#f5b63b" }
-        ];
-        petals.forEach((p, pidx) => {
-          const el = document.createElementNS("http://www.w3.org/2000/svg", "ellipse");
-          el.setAttribute("class", "petal");
-          el.setAttribute("cx", "0");
-          el.setAttribute("cy", "-36");
-          el.setAttribute("rx", "22");
-          el.setAttribute("ry", "34");
-          el.setAttribute("fill", p.fill);
-          el.setAttribute("transform", `rotate(${p.ang})`);
-          el.style.animationDelay = (idx * 200 + 400 + pidx * 60) + "ms";
-          fg.appendChild(el);
-        });
+      /* ── 2 · the spiral: flowers placed on a golden-angle phyllotaxis ── */
+      function buildSpiral() {
+        bloomStage.innerHTML = "";
+        var rng = mulberry32(20261014);
+        var COUNT = REDUCED ? 22 : 52;
+        var GOLDEN = Math.PI * (3 - Math.sqrt(5)); /* ≈ 137.5° */
+        var MAX_R = 47;                            /* vmin from the centre */
+        var frag = document.createDocumentFragment();
 
-        const core = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-        core.setAttribute("class", "core");
-        core.setAttribute("cx", "0");
-        core.setAttribute("cy", "-36");
-        core.setAttribute("r", "8");
-        core.setAttribute("fill", "#f5b63b");
-        core.style.animationDelay = (idx * 200 + 900) + "ms";
-        fg.appendChild(core);
+        for (var i = 0; i < COUNT; i++) {
+          var t = COUNT === 1 ? 1 : i / (COUNT - 1);
+          var angle = i * GOLDEN;
+          var radius = MAX_R * Math.sqrt(t);
+          var dx = Math.cos(angle) * radius;
+          var dy = Math.sin(angle) * radius;
 
-        const leaves = [
-          { x: -10, y: -60, rot: -18 },
-          { x: 10, y: -80, rot: 22 }
-        ];
-        leaves.forEach((l, lidx) => {
-          const el = document.createElementNS("http://www.w3.org/2000/svg", "ellipse");
-          el.setAttribute("class", "leaf");
-          el.setAttribute("cx", l.x);
-          el.setAttribute("cy", l.y);
-          el.setAttribute("rx", "14");
-          el.setAttribute("ry", "22");
-          el.setAttribute("fill", "#4a9b3d");
-          el.setAttribute("transform", `rotate(${l.rot})`);
-          el.style.animationDelay = (idx * 200 + 600 + lidx * 60) + "ms";
-          fg.appendChild(el);
-        });
+          var wrap = document.createElement("div");
+          wrap.className = "spiral-flower";
+          wrap.style.left = "calc(50% + " + dx.toFixed(2) + "vmin)";
+          wrap.style.top = "calc(50% + " + dy.toFixed(2) + "vmin)";
+          /* flowers grow from the centre outwards; bigger towards the rim */
+          wrap.style.setProperty("--size", (38 + t * 42 + rng() * 14).toFixed(1) + "px");
+          wrap.style.setProperty("--delay", (i * 0.045).toFixed(3) + "s");
+          wrap.innerHTML = flowerSVG(rng);
+          frag.appendChild(wrap);
+        }
+        bloomStage.appendChild(frag);
+        /* total time ≈ last delay + bloom duration */
+        return (COUNT - 1) * 45 + 950 + 550;
+      }
 
-        g.appendChild(fg);
-      });
-    }
+      /* ── 3 · the letter types itself out, and jumps ahead as you scroll ─ */
+      var lineEls = [];
+      var lineTexts = [];
+      var totalChars = 0;
+      var shownChars = 0;
+      var autotypeChars = 0;
+      var tickTimer = 0;
+      var TICK_MS = 45;
+      var CHARS_PER_SECOND = 34;
 
-    function startBloom() {
-      if (bloomStarted) return;
-      bloomStarted = true;
-      buildBloom();
-      requestAnimationFrame(() => {
-        bloomWrap.classList.add("revealed");
-      });
-      setTimeout(goToLetter, 4200);
-    }
+      function scrollProgress() {
+        var doc = document.documentElement;
+        var max = doc.scrollHeight - window.innerHeight;
+        if (max <= 0) return 0;
+        return Math.max(0, Math.min(1, window.scrollY / max));
+      }
 
-    function goToLetter() {
-      if (bloomDone) return;
-      bloomDone = true;
-      screenBloom.setAttribute("hidden", "");
-      screenLetter.removeAttribute("hidden");
-      buildGallery();
-      buildParticles();
-      setupScrollReveal();
-      window.scrollTo({ top: 0, behavior: "auto" });
-    }
-
-    function buildGallery() {
-      gallery.innerHTML = "";
-      const imgs = BOUQUETS.slice(0, 6);
-      const rots = [-4, 2, -3, 4, -2, 3];
-      imgs.forEach((src, i) => {
-        const frame = document.createElement("div");frame.className = 'vframe-go';
-;
-        const pol = document.createElement("div");pol.className = 'framed';
-;
-        pol.style.transform = "rotate(" + rots[i % rots.length] + "deg)";
-        const img = document.createElement("img");
-        img.src = src;
-        img.alt = "Bouquet " + (i + 1);
-        img.loading = "eager";
-        img.decoding = "sync";
-        pol.appendChild(img);
-        frame.appendChild(pol);
-        gallery.appendChild(frame);
-      });
-    }
-
-    function setupScrollReveal() {
-      const lines = Array.from(document.querySelectorAll(".letter-line"));
-      const obs = new IntersectionObserver((entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add("visible");
-            obs.unobserve(entry.target);
+      function renderTyped(n) {
+        var left = n;
+        var caretLine = -1;
+        for (var i = 0; i < lineEls.length; i++) {
+          var full = lineTexts[i];
+          var el = lineEls[i];
+          var take;
+          if (left >= full.length) {
+            take = full.length;
+            left -= full.length;
+            caretLine = i;
+          } else if (left > 0) {
+            take = left;
+            left = 0;
+            caretLine = i;
+          } else {
+            take = 0;
           }
-        });
-      }, { threshold: 0.4, rootMargin: "0px 0px -10% 0px" });
-      lines.forEach((l) => obs.observe(l));
-      requestAnimationFrame(() => {
-        lines.slice(0, 2).forEach((l) => l.classList.add("visible"));
-      });
-    }
-
-    document.addEventListener("visibilitychange", () => {
-      if (document.hidden) return;
-    });
-    function setupParticles() {
-      const container = document.getElementById("particles");
-      if (!container) return;
-      container.innerHTML = "";
-      const count = 42;
-      for (let i = 0; i < count; i++) {
-        const el = document.createElement("div");
-        el.className = "particle";
-        const size = 90 + Math.random() * 180;
-        const startY = -size;
-        const startX = Math.random() * 100;
-        const duration = 18 + Math.random() * 22;
-        const delay = Math.random() * duration * 0.85;
-        el.style.width = size + "px";
-        el.style.height = size + "px";
-        el.style.left = startX + "%";
-        el.style.top = startY + "px";
-        el.style.animationDuration = duration + "s";
-        el.style.animationDelay = "-" + delay + "s";
-        container.appendChild(el);
+          el.textContent = full.slice(0, take);
+        }
+        for (var j = 0; j < lineEls.length; j++) {
+          lineEls[j].classList.toggle("is-typing", j === caretLine && shownChars < totalChars);
+        }
       }
-    }
 
-    setupParticles();
+      function applyTyping(target) {
+        if (target <= shownChars) return;
+        shownChars = Math.min(totalChars, target);
+        renderTyped(shownChars);
+        if (shownChars >= totalChars && tickTimer) {
+          window.clearInterval(tickTimer);
+          tickTimer = 0;
+        }
+      }
 
+      /* real-time typewriter, driven by a timer so it keeps typing even
+         when the tab is throttled and there is nothing to scroll. */
+      function typeTick() {
+        autotypeChars = Math.min(totalChars, autotypeChars + CHARS_PER_SECOND * TICK_MS / 1000);
+        /* scrolling down reveals the rest right away */
+        var fromScroll = Math.round(scrollProgress() * totalChars);
+        applyTyping(Math.max(Math.floor(autotypeChars), fromScroll));
+      }
+
+      function startTyping() {
+        lineEls = Array.prototype.slice.call(letterBody.querySelectorAll(".letter-line"));
+        lineTexts = lineEls.map(function (el) { return el.getAttribute("data-text") || ""; });
+        totalChars = lineTexts.reduce(function (a, s) { return a + s.length; }, 0);
+        shownChars = 0;
+        autotypeChars = 0;
+        renderTyped(0);
+        if (tickTimer) window.clearInterval(tickTimer);
+        tickTimer = window.setInterval(typeTick, TICK_MS);
+      }
+
+      /* ── 4 · clean photo frames ──────────────────────────────────────── */
+      function buildGallery() {
+        gallery.innerHTML = "";
+        var rots = [-3, 2, -2, 3, -1.5, 2.5];
+        var frag = document.createDocumentFragment();
+        BOUQUETS.forEach(function (src, i) {
+          var frame = document.createElement("div");
+          frame.className = "vframe";
+          frame.style.setProperty("--delay", (i * 0.09).toFixed(2) + "s");
+
+          var card = document.createElement("div");
+          card.className = "framed";
+          card.style.setProperty("--tilt", rots[i % rots.length] + "deg");
+
+          var img = document.createElement("img");
+          img.src = src;
+          img.alt = "Bouquet " + (i + 1);
+          img.loading = "eager";
+          img.decoding = "async";
+
+          card.appendChild(img);
+          frame.appendChild(card);
+          frag.appendChild(frame);
+        });
+        gallery.appendChild(frag);
+      }
+
+      function revealGallery() {
+        var frames = Array.prototype.slice.call(gallery.querySelectorAll(".vframe"));
+        if (!("IntersectionObserver" in window)) {
+          frames.forEach(function (f) { f.classList.add("is-in"); });
+          return;
+        }
+        var obs = new IntersectionObserver(function (entries) {
+          entries.forEach(function (entry) {
+            if (entry.isIntersecting) {
+              entry.target.classList.add("is-in");
+              obs.unobserve(entry.target);
+            }
+          });
+        }, { threshold: 0.15, rootMargin: "0px 0px -6% 0px" });
+        frames.forEach(function (f) { obs.observe(f); });
+      }
+
+      /* ── flow ───────────────────────────────────────────────────────── */
+      function show(screen) {
+        [screenBox, screenBloom, screenLetter].forEach(function (s) {
+          s.classList.toggle("is-active", s === screen);
+          s.setAttribute("aria-hidden", s === screen ? "false" : "true");
+        });
+      }
+
+      function openGift() {
+        if (phase !== "box") return;
+        phase = "bloom";
+        /* the box plays its open animation while the spiral grows behind it */
+        screenBox.classList.add("is-opening");
+        var bloomMs = buildSpiral();
+        screenBloom.classList.add("is-active");
+        screenBloom.setAttribute("aria-hidden", "false");
+        window.setTimeout(function () {
+          screenBox.classList.remove("is-active", "is-opening");
+          screenBox.setAttribute("aria-hidden", "true");
+        }, 720);
+        window.clearTimeout(bloomTimer);
+        bloomTimer = window.setTimeout(goToLetter, REDUCED ? 500 : bloomMs);
+      }
+
+      function goToLetter() {
+        if (phase === "letter") return;
+        phase = "letter";
+        window.clearTimeout(bloomTimer);
+        show(screenLetter);
+        buildGallery();
+        revealGallery();
+        startTyping();
+        window.scrollTo({ top: 0, behavior: "auto" });
+      }
+
+      giftWrap.addEventListener("click", openGift);
+      giftWrap.addEventListener("keydown", function (e) {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          openGift();
+        }
+      });
+      /* tapping / clicking the bloom jumps straight to the letter */
+      bloomStage.addEventListener("click", goToLetter);
+
+      btnReplay.addEventListener("click", function () {
+        window.location.reload();
+      });
+
+      btnCopy.addEventListener("click", function () {
+        var old = copyText.textContent;
+        function done() {
+          copyText.textContent = "Copied!";
+          window.setTimeout(function () { copyText.textContent = old; }, 1200);
+        }
+        if (navigator.clipboard && window.isSecureContext) {
+          navigator.clipboard.writeText(window.location.href).then(done, done);
+        } else {
+          done();
+        }
+      });
+
+      window.addEventListener("scroll", function () {
+        if (phase !== "letter" || !totalChars) return;
+        applyTyping(Math.round(scrollProgress() * totalChars));
+      }, { passive: true });
+
+      buildOrbs();
+      window.__amna = {
+        goToLetter: goToLetter,
+        openGift: openGift,
+        scrollProgress: scrollProgress,
+        stats: function () {
+          return { phase: phase, totalChars: totalChars, shownChars: shownChars, lines: lineEls.length };
+        }
+      };
+    })();
   </script>
 </body>
 
