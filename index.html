@@ -12,16 +12,22 @@
 </head>
 
 <body>
-  <div class="orb-field" id="orbField" aria-hidden="true"></div>
+  <div class="petal-field" id="petalField" aria-hidden="true"></div>
 
   <main class="app">
-    <!-- 1 · the white gift box with its pink ribbon, and a tap to open -->
+    <!-- 1 · the gift box, cropped to the box alone: no frame, no circle -->
     <section id="screen-box" class="screen is-active">
       <div id="gift-wrap" role="button" tabindex="0" aria-label="Open the gift">
-        <div class="gift-photo">
-          <span id="gift-glow" aria-hidden="true"></span>
-          <img id="gift-img" src="amna/594047196022569129_120.jpg" alt="A white gift box tied with a pink ribbon"
-            onerror="this.onerror=null;this.src='amna/5933832387462631394_121.jpg'">
+        <div class="gift-stage" id="gift-stage">
+          <div class="gift-crop" id="gift-crop">
+            <img class="gift-img gift-base" id="gift-base" src="amna/5940471960225649129_120.jpg"
+              alt="A white gift box tied with a pink ribbon"
+              onerror="this.onerror=null;this.src='amna/5933832387462631394_121.jpg'">
+            <div class="gift-lid" id="gift-lid" aria-hidden="true">
+              <img class="gift-img" id="gift-lid-img" alt="" aria-hidden="true">
+            </div>
+          </div>
+          <div class="gift-confetti" id="giftConfetti" aria-hidden="true"></div>
         </div>
         <div class="box-text">
           <span>For you, <em>Amna</em></span>
@@ -30,25 +36,26 @@
       </div>
     </section>
 
-    <!-- 2 · cartoon flowers bloom in a spiral, then fall to the floor -->
+    <!-- 2 · a dense tunnel of pink and white flowers that cascades down -->
     <section id="screen-bloom" class="screen" aria-hidden="true">
       <div class="bloom-stage" id="bloomStage" aria-hidden="true"></div>
     </section>
 
-    <!-- 3 · the letter, typed line by line as you scroll -->
+    <!-- 3 · the gallery first, then the letter underneath -->
     <section id="screen-letter" class="screen" aria-hidden="true">
-      <article class="parchment">
-        <div class="parchment-inner" id="letterBody">
-          <p class="letter-line" data-text="To my dearest Amna,"></p>
-          <p class="letter-line" data-text="every time I think of you, my heart is filled with warmth."></p>
-          <p class="letter-line" data-text="Your smile is a gift to this world, and I'm so grateful to have you as a friend."></p>
-          <p class="letter-line" data-text="You make the days softer and kinder."></p>
-          <p class="letter-line" data-text="Hope this little gesture brings a bit of that sunshine to your day."></p>
-          <p class="letter-line" data-text="Stay bright. Your friend."></p>
+      <div class="gallery" id="gallery"></div>
+
+      <article class="paper">
+        <div class="paper-inner" id="letterBody">
+          <p class="letter-line is-para" data-text="To my dearest Amna,"></p>
+          <p class="letter-line is-para" data-text="Every time I think of you, my heart is filled with warmth and a profound sense of gratitude. Your presence is like a gentle, steady light that brightens even the dullest days, and your laughter is a melody that brings so much peace to everyone around you."></p>
+          <p class="letter-line is-para" data-text="You have a truly special soul—kind, thoughtful, and deeply caring. Having you as a friend is a gift I will always cherish. You make the world feel softer, warmer, and much more beautiful just by being in it."></p>
+          <p class="letter-line is-para" data-text="I wanted to create this little digital space to remind you of how appreciated and valued you are. May your days be filled with as much happiness, sweetness, and sunshine as you bring into the lives of others."></p>
+          <p class="letter-line is-para" data-text="Keep shining bright, stay as wonderful as you are, today and always."></p>
+          <p class="letter-line is-para" data-text="With all my warmest wishes,"></p>
+          <p class="letter-line" data-text="Your friend"></p>
         </div>
       </article>
-
-      <div class="gallery" id="gallery"></div>
 
       <div class="btn-row">
         <button class="paper-btn" id="btn-replay" aria-label="Play again">
@@ -69,363 +76,7 @@
     </section>
   </main>
 
-  <script>
-    (function () {
-      "use strict";
-
-      var BOUQUETS = [
-        "amna/5936084187276316915_121.jpg",
-        "amna/5936084187276316916_120.jpg",
-        "amna/5936084187276316917_121.jpg",
-        "amna/5936084187276316918_120.jpg",
-        "amna/5936084187276316920_121.jpg",
-        "amna/5936084187276316921_121.jpg"
-      ];
-
-      /* cartoon flower palette — mirrored from the reference video */
-      var PALETTE = [
-        { petal: "#d62839", edge: "#8f0f21", core: "#f5b63b" }, /* red    */
-        { petal: "#ff6f9c", edge: "#c93b6c", core: "#fff2f7" }, /* pink   */
-        { petal: "#fff7f7", edge: "#d9c6cd", core: "#f5b63b" }, /* white  */
-        { petal: "#f5b63b", edge: "#c8871a", core: "#d62839" }, /* gold   */
-        { petal: "#5b8dfa", edge: "#2f5bc4", core: "#fff7f7" }, /* blue   */
-        { petal: "#6fbf4a", edge: "#3f7c32", core: "#f5b63b" }  /* green  */
-      ];
-
-      var REDUCED = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
-      var screenBox = document.getElementById("screen-box");
-      var screenBloom = document.getElementById("screen-bloom");
-      var screenLetter = document.getElementById("screen-letter");
-      var giftWrap = document.getElementById("gift-wrap");
-      var bloomStage = document.getElementById("bloomStage");
-      var gallery = document.getElementById("gallery");
-      var btnReplay = document.getElementById("btn-replay");
-      var btnCopy = document.getElementById("btn-copy");
-      var copyText = document.getElementById("copyText");
-      var letterBody = document.getElementById("letterBody");
-
-      var phase = "box";
-      var bloomTimer = 0;
-      var fallTimer = 0;
-
-      /* ── deterministic pseudo random, so the layout is stable ────────── */
-      function mulberry32(seed) {
-        var a = seed >>> 0;
-        return function () {
-          a = (a + 0x6D2B79F5) | 0;
-          var t = Math.imul(a ^ (a >>> 15), 1 | a);
-          t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-          return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-        };
-      }
-
-      /* ── continuous floating blurred background circles ─────────────── */
-      function buildOrbs() {
-        var field = document.getElementById("orbField");
-        if (!field || field.childElementCount) return;
-        var rng = mulberry32(90210);
-        var count = REDUCED ? 6 : 14;
-        for (var i = 0; i < count; i++) {
-          var el = document.createElement("span");
-          el.className = "orb";
-          var size = 90 + rng() * 210;
-          el.style.width = size.toFixed(0) + "px";
-          el.style.height = size.toFixed(0) + "px";
-          el.style.left = (rng() * 92 - 6).toFixed(2) + "%";
-          el.style.top = (rng() * 92 - 6).toFixed(2) + "%";
-          el.style.animationDuration = (14 + rng() * 16).toFixed(1) + "s";
-          el.style.animationDelay = "-" + (rng() * 20).toFixed(1) + "s";
-          el.style.opacity = (0.4 + rng() * 0.4).toFixed(2);
-          field.appendChild(el);
-        }
-      }
-
-      /* ── one cartoon flower, drawn as SVG ───────────────────────────── */
-      function flowerSVG(rng) {
-        var pal = PALETTE[Math.floor(rng() * PALETTE.length)];
-        var petals = 5 + Math.floor(rng() * 4);
-        var step = 360 / petals;
-        var spin = rng() * 360;
-        var shape = [];
-        shape.push('<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg" role="presentation">');
-        shape.push('<g transform="translate(60,60) rotate(' + spin.toFixed(1) + ')">');
-        /* two leaves tucked under the bloom */
-        shape.push('<ellipse cx="-20" cy="28" rx="9" ry="19" fill="#4f9a3c" transform="rotate(-38 -20 28)"/>');
-        shape.push('<ellipse cx="20" cy="28" rx="9" ry="19" fill="#3f7c32" transform="rotate(38 20 28)"/>');
-        for (var i = 0; i < petals; i++) {
-          var a = (i * step).toFixed(2);
-          shape.push('<ellipse cx="0" cy="-26" rx="13.5" ry="26" fill="' + pal.petal +
-            '" stroke="' + pal.edge + '" stroke-width="1.6" transform="rotate(' + a + ')"/>');
-        }
-        shape.push('<circle r="13" fill="' + pal.core + '" stroke="' + pal.edge + '" stroke-width="1.6"/>');
-        shape.push('</g></svg>');
-        return shape.join("");
-      }
-
-      /* ── 2a · the spiral: flowers placed on a golden-angle phyllotaxis ─ */
-      var STEP_MS = 30;   /* stagger between neighbouring blooms */
-
-      function buildSpiral() {
-        bloomStage.innerHTML = "";
-        bloomStage.classList.remove("is-falling");
-        var rng = mulberry32(20261014);
-        var COUNT = REDUCED ? 22 : 48;
-        var GOLDEN = Math.PI * (3 - Math.sqrt(5)); /* ≈ 137.5° */
-        var MAX_R = 45;                            /* vmin from the centre */
-        var frag = document.createDocumentFragment();
-
-        for (var i = 0; i < COUNT; i++) {
-          var t = COUNT === 1 ? 1 : i / (COUNT - 1);
-          var angle = i * GOLDEN;
-          var radius = MAX_R * Math.sqrt(t);
-          var dx = Math.cos(angle) * radius;
-          var dy = Math.sin(angle) * radius;
-
-          var wrap = document.createElement("div");
-          wrap.className = "spiral-flower";
-          wrap.style.left = "calc(50% + " + dx.toFixed(2) + "vmin)";
-          wrap.style.top = "calc(50% + " + dy.toFixed(2) + "vmin)";
-          /* flowers grow from the centre outwards; bigger towards the rim */
-          wrap.style.setProperty("--size", (38 + t * 42 + rng() * 14).toFixed(1) + "px");
-          wrap.style.setProperty("--delay", (i * STEP_MS / 1000).toFixed(3) + "s");
-          wrap.innerHTML = flowerSVG(rng);
-          frag.appendChild(wrap);
-        }
-        bloomStage.appendChild(frag);
-        /* spiral is complete once the last bloom has opened */
-        return (COUNT - 1) * STEP_MS + 950;
-      }
-
-      /* ── 2b · the fall: every bloom lets go and drifts to the floor ──── */
-      function startFalling() {
-        var flowers = Array.prototype.slice.call(bloomStage.querySelectorAll(".spiral-flower"));
-        var vh = window.innerHeight || document.documentElement.clientHeight;
-        var longest = 0;
-
-        flowers.forEach(function (el, i) {
-          var box = el.getBoundingClientRect();
-          var centreY = box.top + box.height / 2;
-          /* land the bloom on the bottom edge of the screen */
-          var floorY = vh - box.height * 0.42;
-          var dy = Math.max(60, floorY - centreY);
-          var dir = i % 2 ? 1 : -1;
-
-          el.style.setProperty("--fall-y", dy.toFixed(1) + "px");
-          el.style.setProperty("--fall-x", (dir * (6 + (i * 13) % 30)).toFixed(0) + "px");
-          el.style.setProperty("--fall-spin", (dir * (120 + (i * 37) % 200)).toFixed(0) + "deg");
-          var delay = i * 0.016;
-          var dur = 1.1 + (i % 5) * 0.08;
-          el.style.setProperty("--fall-delay", delay.toFixed(3) + "s");
-          el.style.setProperty("--fall-dur", dur.toFixed(2) + "s");
-          /* the bloom is still in place — now let this one drop */
-          el.classList.add("is-falling");
-          longest = Math.max(longest, delay + dur);
-        });
-
-        bloomStage.classList.add("is-falling");
-        return REDUCED ? 400 : Math.max(900, Math.round(longest * 1000) + 260);
-      }
-
-      /* ── 3 · the letter types itself out, line by line, as you scroll ─ */
-      var lineEls = [];
-      var lineTexts = [];
-      var totalChars = 0;
-      var shownChars = 0;
-      var driftChars = 0;
-      var tickTimer = 0;
-      var TICK_MS = 40;
-      var DRIFT_CPS = 7;   /* slow baseline so the note still reads itself */
-
-      function scrollProgress() {
-        var doc = document.documentElement;
-        var max = doc.scrollHeight - window.innerHeight;
-        if (max <= 0) return 1;
-        return Math.max(0, Math.min(1, window.scrollY / max));
-      }
-
-      function renderTyped(n) {
-        var left = n;
-        var caretLine = -1;
-        for (var i = 0; i < lineEls.length; i++) {
-          var full = lineTexts[i];
-          var el = lineEls[i];
-          var take;
-          if (left >= full.length) {
-            take = full.length;
-            left -= full.length;
-            caretLine = i;
-          } else if (left > 0) {
-            take = left;
-            left = 0;
-            caretLine = i;
-          } else {
-            take = 0;
-          }
-          el.textContent = full.slice(0, take);
-        }
-        for (var j = 0; j < lineEls.length; j++) {
-          lineEls[j].classList.toggle("is-typing", j === caretLine && shownChars < totalChars);
-        }
-      }
-
-      function applyTyping(target) {
-        if (target <= shownChars) return;
-        shownChars = Math.min(totalChars, target);
-        renderTyped(shownChars);
-        if (shownChars >= totalChars && tickTimer) {
-          window.clearInterval(tickTimer);
-          tickTimer = 0;
-        }
-      }
-
-      function typeTick() {
-        driftChars = Math.min(totalChars, driftChars + DRIFT_CPS * TICK_MS / 1000);
-        var fromScroll = Math.round(scrollProgress() * totalChars);
-        applyTyping(Math.max(Math.floor(driftChars), fromScroll));
-      }
-
-      function startTyping() {
-        lineEls = Array.prototype.slice.call(letterBody.querySelectorAll(".letter-line"));
-        lineTexts = lineEls.map(function (el) { return el.getAttribute("data-text") || ""; });
-        totalChars = lineTexts.reduce(function (a, s) { return a + s.length; }, 0);
-        shownChars = 0;
-        driftChars = 0;
-        renderTyped(0);
-        if (tickTimer) window.clearInterval(tickTimer);
-        tickTimer = window.setInterval(typeTick, TICK_MS);
-      }
-
-      /* ── 4 · the vintage photo frames ────────────────────────────────── */
-      function buildGallery() {
-        gallery.innerHTML = "";
-        var rots = [-3, 2, -2, 3, -1.5, 2.5];
-        var frag = document.createDocumentFragment();
-        BOUQUETS.forEach(function (src, i) {
-          var frame = document.createElement("div");
-          frame.className = "vframe";
-          frame.style.setProperty("--delay", (i * 0.09).toFixed(2) + "s");
-
-          var card = document.createElement("div");
-          card.className = "framed";
-          card.style.setProperty("--tilt", rots[i % rots.length] + "deg");
-
-          var img = document.createElement("img");
-          img.src = src;
-          img.alt = "Bouquet " + (i + 1);
-          img.loading = "eager";
-          img.decoding = "async";
-
-          card.appendChild(img);
-          frame.appendChild(card);
-          frag.appendChild(frame);
-        });
-        gallery.appendChild(frag);
-      }
-
-      function revealGallery() {
-        var frames = Array.prototype.slice.call(gallery.querySelectorAll(".vframe"));
-        if (!("IntersectionObserver" in window)) {
-          frames.forEach(function (f) { f.classList.add("is-in"); });
-          return;
-        }
-        var obs = new IntersectionObserver(function (entries) {
-          entries.forEach(function (entry) {
-            if (entry.isIntersecting) {
-              entry.target.classList.add("is-in");
-              obs.unobserve(entry.target);
-            }
-          });
-        }, { threshold: 0.15, rootMargin: "0px 0px -6% 0px" });
-        frames.forEach(function (f) { obs.observe(f); });
-      }
-
-      /* ── flow ───────────────────────────────────────────────────────── */
-      function show(screen) {
-        [screenBox, screenBloom, screenLetter].forEach(function (s) {
-          s.classList.toggle("is-active", s === screen);
-          s.setAttribute("aria-hidden", s === screen ? "false" : "true");
-        });
-      }
-
-      function openGift() {
-        if (phase !== "box") return;
-        phase = "bloom";
-        /* the box plays its open animation while the spiral grows behind it */
-        screenBox.classList.add("is-opening");
-        var bloomMs = buildSpiral();
-        screenBloom.classList.add("is-active");
-        screenBloom.setAttribute("aria-hidden", "false");
-        window.setTimeout(function () {
-          screenBox.classList.remove("is-active", "is-opening");
-          screenBox.setAttribute("aria-hidden", "true");
-        }, 720);
-        window.clearTimeout(bloomTimer);
-        bloomTimer = window.setTimeout(function () {
-          if (phase !== "bloom") return;
-          phase = "fall";
-          var fallMs = startFalling();
-          window.clearTimeout(fallTimer);
-          fallTimer = window.setTimeout(goToLetter, fallMs);
-        }, REDUCED ? 400 : bloomMs);
-      }
-
-      function goToLetter() {
-        window.clearTimeout(bloomTimer);
-        window.clearTimeout(fallTimer);
-        if (phase === "letter") return;
-        phase = "letter";
-        show(screenLetter);
-        buildGallery();
-        revealGallery();
-        startTyping();
-        window.scrollTo({ top: 0, behavior: "auto" });
-      }
-
-      giftWrap.addEventListener("click", openGift);
-      giftWrap.addEventListener("keydown", function (e) {
-        if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault();
-          openGift();
-        }
-      });
-      /* tapping / clicking the bloom jumps straight to the letter */
-      bloomStage.addEventListener("click", goToLetter);
-
-      btnReplay.addEventListener("click", function () {
-        window.location.reload();
-      });
-
-      btnCopy.addEventListener("click", function () {
-        var old = copyText.textContent;
-        function done() {
-          copyText.textContent = "Copied!";
-          window.setTimeout(function () { copyText.textContent = old; }, 1200);
-        }
-        if (navigator.clipboard && window.isSecureContext) {
-          navigator.clipboard.writeText(window.location.href).then(done, done);
-        } else {
-          done();
-        }
-      });
-
-      /* scrolling down reveals the rest of the letter right away */
-      window.addEventListener("scroll", function () {
-        if (phase !== "letter" || !totalChars) return;
-        applyTyping(Math.round(scrollProgress() * totalChars));
-      }, { passive: true });
-
-      buildOrbs();
-      window.__amna = {
-        goToLetter: goToLetter,
-        openGift: openGift,
-        scrollProgress: scrollProgress,
-        stats: function () {
-          return { phase: phase, totalChars: totalChars, shownChars: shownChars, lines: lineEls.length };
-        }
-      };
-    })();
-  </script>
+  <script src="script.js"></script>
 </body>
 
 </html>

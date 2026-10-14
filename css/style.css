@@ -1,6 +1,6 @@
 /* ═══════════════════════════════════════════════════════════════════════
-   For Amna — a blush-pink gift, a spiral of flowers that falls, a letter
-   on vintage parchment, and six bouquet photos in vintage frames.
+   For Amna — a blush-pink garden with drifting petals, a gift box that
+   unwraps, a tunnel of pink and white flowers, a gallery and a letter.
    ═══════════════════════════════════════════════════════════════════════ */
 
 /* ── tokens ─────────────────────────────────────────────────────────── */
@@ -10,17 +10,16 @@
   --blush-3:    #ffe2ef;
   --blush-4:    #ffd6e7;
   --cream:      #fffdf8;
-  --rose:       #e0568a;
-  --rose-deep:  #a82b58;
+  --rose:       #e8437f;
+  --rose-deep:  #b02a5c;
   --ink:        #6d3b4e;
   --ink-soft:   #96687b;
   --gold:       #d9a441;
 
-  --parch-1:    #fdf7e9;
-  --parch-2:    #f4e7cf;
-  --parch-3:    #e8d5b1;
-  --parch-edge: #966f42;
-  --ink-brown:  #4a3a22;
+  --petal-pink:   #ffd3e4;
+  --petal-pale:   #ffe6f0;
+  --petal-white:  #ffffff;
+  --petal-edge:   #f3a8c6;
 
   --script: "Dancing Script", "Segoe Script", "Brush Script MT", cursive;
   --hand:   "Caveat", "Segoe Script", "Brush Script MT", cursive;
@@ -45,7 +44,7 @@ body {
 body {
   font-family: var(--sans);
   color: var(--ink);
-  /* 1 · the soft blush-pink → cream gradient (the harsh red is gone) */
+  /* soft blush-pink → cream */
   background:
     radial-gradient(1200px 780px at 6% -8%, #ffffff 0%, rgba(255, 255, 255, 0) 60%),
     radial-gradient(980px 720px at 98% 4%, var(--blush-3) 0%, rgba(255, 226, 239, 0) 62%),
@@ -86,8 +85,8 @@ button,
   border-radius: 6px;
 }
 
-/* ── continuous floating blurred background circles ─────────────────── */
-.orb-field {
+/* ── drifting petals, light pink and white ──────────────────────────── */
+.petal-field {
   position: fixed;
   inset: 0;
   z-index: 0;
@@ -95,23 +94,41 @@ button,
   overflow: hidden;
 }
 
-.orb {
+.petal {
   position: absolute;
-  border-radius: 50%;
-  filter: blur(38px);
-  background: radial-gradient(circle at 35% 35%, rgba(255, 255, 255, .95), rgba(255, 176, 208, .42) 52%, rgba(255, 176, 208, 0) 74%);
-  will-change: transform;
-  animation-name: orbFloat;
-  animation-timing-function: ease-in-out;
+  top: -14vh;
+  opacity: 0;
+  will-change: transform, opacity;
+  animation-name: petalDrift;
+  animation-timing-function: linear;
   animation-iteration-count: infinite;
-  opacity: .7;
 }
 
-@keyframes orbFloat {
-  0%,
-  100% { transform: translate3d(0, 0, 0) scale(1); }
+.petal svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
 
-  50%  { transform: translate3d(26px, -44px, 0) scale(1.18); }
+@keyframes petalDrift {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, -10vh, 0) rotate(0deg);
+  }
+
+  8%  { opacity: var(--petal-alpha, .9); }
+
+  50% {
+    opacity: var(--petal-alpha, .9);
+    transform: translate3d(var(--sway, 34px), 52vh, 0) rotate(190deg);
+  }
+
+  92% { opacity: var(--petal-alpha, .9); }
+
+  100% {
+    opacity: 0;
+    transform: translate3d(0, 116vh, 0) rotate(380deg);
+  }
 }
 
 /* ── screens ───────────────────────────────────────────────────────── */
@@ -142,12 +159,12 @@ button,
   min-height: 78svh;
 }
 
-/* ── 2 · the gift box ──────────────────────────────────────────────── */
+/* ── 1 · the gift box: the box itself, and nothing around it ─────────── */
 #gift-wrap {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 18px;
+  gap: 20px;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
   will-change: transform;
@@ -156,45 +173,62 @@ button,
 
 @keyframes giftIdle {
   0%,
-  100% { transform: translateY(0) rotate(-1.2deg); }
+  100% { transform: translateY(0) rotate(-1deg); }
 
-  50%  { transform: translateY(-10px) rotate(1.2deg); }
+  50%  { transform: translateY(-9px) rotate(1deg); }
 }
 
-.gift-photo {
+.gift-stage {
   position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-/* a soft pool of light so the box floats on its own */
-#gift-glow {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: clamp(250px, 76vw, 400px);
-  aspect-ratio: 1 / 1;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(255, 255, 255, .85) 0%, rgba(255, 214, 231, .5) 46%, rgba(255, 200, 224, 0) 74%);
-  filter: blur(8px);
-  pointer-events: none;
+/* the crop window: a plain rectangle showing only the box.
+   no circle, no dish, no rounded overlay. */
+.gift-crop {
+  /* tuned to amna/5940471960225649129_120.jpg (736x736, white ground):
+     the box occupies x 34.2–65.8% and y 31.6–68.4% of the photograph,
+     so this window frames it and only it. */
+  --crop-w: 280.9%;
+  --crop-x: -90.45%;
+  --crop-y: -72.54%;
+  --crop-aspect: 0.8725;
+  --lid: 31%;
+
+  position: relative;
+  width: clamp(186px, 50vw, 272px);
+  aspect-ratio: var(--crop-aspect, 0.7053);
+  overflow: hidden;
 }
 
-/* the white gift box with its pink ribbon, presented as a clean
-   standalone graphic: no frame, no card, edges melting into the blush */
-#gift-img {
-  position: relative;
-  width: clamp(200px, 56vw, 300px);
+.gift-img {
+  position: absolute;
+  display: block;
+  width: var(--crop-w);
+  max-width: none;
   height: auto;
-  aspect-ratio: 1 / 1;
-  /* square crop centred on the wrapped box in the reference frame */
-  object-fit: cover;
-  object-position: 44% 50%;
-  filter: saturate(1.06) contrast(1.02) drop-shadow(0 22px 34px rgba(168, 43, 88, .2));
-  -webkit-mask-image: radial-gradient(closest-side, #000 80%, rgba(0, 0, 0, .85) 92%, transparent 100%);
-  mask-image: radial-gradient(closest-side, #000 80%, rgba(0, 0, 0, .85) 92%, transparent 100%);
+  left: var(--crop-x);
+  top: var(--crop-y);
+  filter: saturate(1.06) contrast(1.03);
+  will-change: transform;
+}
+
+/* the base is the box with its lid hidden away */
+.gift-base {
+  clip-path: inset(var(--lid) 0 0 0);
+  transform-origin: 50% 78%;
+}
+
+/* the lid is the top slice of the very same photograph */
+.gift-lid {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  clip-path: inset(0 0 calc(100% - var(--lid)) 0);
+  transform-origin: 50% 90%;
+  will-change: transform, opacity;
 }
 
 .box-text {
@@ -215,20 +249,64 @@ button,
   color: var(--ink-soft);
 }
 
-/* the tap transition: the box shrinks away as the bloom takes over */
-#screen-box.is-opening #gift-wrap {
-  animation: giftOpen .75s cubic-bezier(.22, .61, .36, 1) forwards;
+/* ── the unwrapping: the lid lifts off, the box pops open ───────────── */
+.gift-confetti {
+  position: absolute;
+  left: 50%;
+  top: 22%;
+  width: 0;
+  height: 0;
+  pointer-events: none;
 }
 
-@keyframes giftOpen {
-  0%   { transform: translateY(0) scale(1); opacity: 1; }
-
-  22%  { transform: translateY(0) scale(1.08) rotate(-2deg); }
-
-  100% { transform: translateY(-26px) scale(.24) rotate(6deg); opacity: 0; }
+.gift-confetti i {
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: block;
+  width: 12px;
+  height: 12px;
+  opacity: 0;
+  will-change: transform, opacity;
 }
 
-/* ── 3 · the cartoon flowers: spiral first, then they fall ──────────── */
+.gift-confetti i svg { display: block; width: 100%; height: 100%; }
+
+#gift-wrap.is-opening .gift-lid {
+  animation: lidLift 1.05s var(--ease-soft) forwards;
+}
+
+@keyframes lidLift {
+  0%   { transform: translate(0, 0) rotate(0deg); opacity: 1; }
+
+  26%  { transform: translate(0, -7px) rotate(-3.5deg); opacity: 1; }
+
+  100% { transform: translate(16px, -82px) rotate(26deg); opacity: 0; }
+}
+
+#gift-wrap.is-opening .gift-base {
+  animation: boxPop .95s var(--ease-soft) forwards;
+}
+
+@keyframes boxPop {
+  0%   { transform: scale(1) translateY(0); opacity: 1; }
+
+  24%  { transform: scale(1.05) translateY(0); opacity: 1; }
+
+  100% { transform: scale(1.14) translateY(14px); opacity: 0; }
+}
+
+#gift-wrap.is-opening .gift-confetti i { animation: confetti 1.25s ease-out forwards; }
+
+@keyframes confetti {
+  0%   { opacity: 0; transform: translate(-50%, -50%) scale(.2) rotate(0deg); }
+
+  12%  { opacity: 1; }
+
+  100% { opacity: 0; transform: translate(var(--cx, 0px), var(--cy, 120px)) scale(1) rotate(var(--cs, 220deg)); }
+}
+
+/* ── 2 · a dense tunnel of pink and white flowers ───────────────────── */
 #screen-bloom.is-active {
   display: block;
   width: 100%;
@@ -268,7 +346,7 @@ button,
   display: block;
   width: 100%;
   height: 100%;
-  filter: drop-shadow(0 6px 14px rgba(150, 60, 100, .28));
+  filter: drop-shadow(0 5px 12px rgba(196, 90, 132, .24));
   animation: flowerSway 6.5s ease-in-out infinite;
   animation-delay: var(--delay, 0s);
 }
@@ -288,7 +366,7 @@ button,
   50%  { transform: rotate(3deg) scale(1.04); }
 }
 
-/* phase two — every bloom lets go and drifts down to the floor */
+/* phase two — every bloom lets go and cascades to the floor */
 .spiral-flower.is-falling {
   animation-name: petalFall;
   animation-duration: var(--fall-dur, 1.3s);
@@ -312,82 +390,7 @@ button,
   }
 }
 
-/* ── 4 · the parchment letter ──────────────────────────────────────── */
-#screen-letter.is-active { gap: 28px; }
-
-.parchment {
-  position: relative;
-  width: min(640px, 100%);
-  padding: clamp(26px, 6vw, 50px) clamp(20px, 6vw, 52px);
-  text-align: left;
-  /* natural straight borders — an honest sheet, not a torn scrap */
-  border-radius: 3px;
-  border: 1px solid rgba(150, 111, 66, .34);
-  background:
-    radial-gradient(120% 90% at 12% 4%, rgba(255, 255, 255, .8) 0%, rgba(255, 255, 255, 0) 54%),
-    radial-gradient(90% 74% at 92% 98%, rgba(178, 141, 88, .3) 0%, rgba(178, 141, 88, 0) 62%),
-    linear-gradient(158deg, var(--parch-1) 0%, var(--parch-2) 48%, var(--parch-3) 100%);
-  /* a subtle shadow, so it reads as a real sheet lying on the blush */
-  box-shadow:
-    0 14px 30px rgba(146, 84, 58, .17),
-    0 2px 5px rgba(146, 84, 58, .12),
-    inset 0 0 44px rgba(160, 122, 72, .16);
-  color: var(--ink-brown);
-  line-height: 1.9;
-  font-family: var(--hand);
-  font-weight: 700;
-  font-size: clamp(17px, 2.9vw, 22px);
-  letter-spacing: .4px;
-}
-
-/* paper grain, laid over the whole sheet */
-.parchment::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  opacity: .3;
-  mix-blend-mode: multiply;
-  background-image:
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23g)' opacity='0.5'/%3E%3C/svg%3E");
-}
-
-.parchment-inner {
-  position: relative;
-  z-index: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.letter-line {
-  margin: 0;
-  min-height: 1.9em;
-  white-space: pre-wrap;
-  word-break: break-word;
-}
-
-/* the caret follows the character currently being typed */
-.letter-line.is-typing::after {
-  content: "";
-  display: inline-block;
-  width: 2px;
-  height: 1.05em;
-  margin-left: 2px;
-  vertical-align: -0.16em;
-  background: currentColor;
-  animation: caret 1s steps(1, end) infinite;
-}
-
-@keyframes caret {
-  0%,
-  49%  { opacity: 1; }
-
-  50%,
-  100% { opacity: 0; }
-}
-
-/* ── 5 · the gallery: vintage frames, no ropes, clips or strings ───── */
+/* ── 4 · the gallery: vintage frames, no ropes, clips or strings ───── */
 .gallery {
   width: min(640px, 100%);
   display: grid;
@@ -399,11 +402,15 @@ button,
 }
 
 @media (max-width: 640px) {
-  .gallery { grid-template-columns: repeat(2, 1fr); }
+  .gallery {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
 @media (max-width: 420px) {
-  .gallery { grid-template-columns: 1fr; }
+  .gallery {
+    grid-template-columns: 1fr;
+  }
 }
 
 .vframe {
@@ -437,7 +444,7 @@ button,
   position: absolute;
   inset: clamp(8px, 2vw, 11px);
   pointer-events: none;
-  background: radial-gradient(120% 120% at 50% 0%, rgba(255, 255, 255, .18) 0%, transparent 60%);
+  background: radial-gradient(120% 120% at 50% 0%, rgba(255, 255, 255, 0.18) 0%, transparent 60%);
   mix-blend-mode: screen;
 }
 
@@ -448,6 +455,66 @@ button,
   aspect-ratio: 1 / 1;
   object-fit: cover;
   filter: contrast(1.02) saturate(1.02);
+}
+
+/* ── 3 · the white paper letter ─────────────────────────────────────── */
+#screen-letter.is-active { gap: 28px; }
+
+.paper {
+  position: relative;
+  width: min(660px, 100%);
+  padding: clamp(24px, 6vw, 46px) clamp(20px, 6vw, 48px);
+  text-align: left;
+  /* crisp white paper, smooth natural borders, a soft shadow */
+  border-radius: 6px;
+  border: 1px solid rgba(178, 132, 156, .2);
+  background: linear-gradient(180deg, #ffffff 0%, #fffdfd 62%, #fdfbfc 100%);
+  box-shadow:
+    0 18px 40px rgba(150, 90, 120, .15),
+    0 2px 6px rgba(150, 90, 120, .09);
+  color: #3f2a35;
+  line-height: 1.85;
+  font-family: var(--hand);
+  font-weight: 700;
+  font-size: clamp(17px, 2.9vw, 22px);
+  letter-spacing: .4px;
+}
+
+.paper-inner {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.letter-line {
+  margin: 0;
+  min-height: 1.85em;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.letter-line.is-para { margin-top: .9em; }
+.letter-line.is-para:first-child { margin-top: 0; }
+
+/* the caret follows the character currently being typed */
+.letter-line.is-typing::after {
+  content: "";
+  display: inline-block;
+  width: 2px;
+  height: 1.05em;
+  margin-left: 2px;
+  vertical-align: -0.16em;
+  background: currentColor;
+  animation: caret 1s steps(1, end) infinite;
+}
+
+@keyframes caret {
+  0%,
+  49%  { opacity: 1; }
+
+  50%,
+  100% { opacity: 0; }
 }
 
 /* ── paper buttons ─────────────────────────────────────────────────── */
@@ -463,7 +530,7 @@ button,
   appearance: none;
   border: 0;
   background: transparent;
-  color: var(--ink-brown);
+  color: #4a3720;
   font-family: var(--hand);
   font-weight: 800;
   font-size: clamp(15px, 2.6vw, 18px);
@@ -492,12 +559,14 @@ button,
 
 /* ── accessibility & motion preferences ────────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
-  .orb,
+  .petal,
   #gift-wrap,
   .spiral-flower,
   .spiral-flower svg {
     animation: none !important;
   }
+
+  .petal { opacity: .5; }
 
   .spiral-flower {
     opacity: 1;
