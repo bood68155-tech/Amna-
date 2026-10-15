@@ -9,9 +9,14 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;600;700&family=Caveat:wght@400;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
+  <!-- the gift box is the first thing on screen: fetch it with the document -->
+  <link rel="preload" as="image" href="amna/5940471960225649129_120.png">
 </head>
 
 <body>
+  <!-- one <symbol> per flower, drawn once and referenced by every bloom -->
+  <svg class="flower-defs" id="flowerDefs" aria-hidden="true" focusable="false"></svg>
+
   <div class="petal-field" id="petalField" aria-hidden="true"></div>
 
   <main class="app">

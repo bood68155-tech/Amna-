@@ -324,6 +324,18 @@ button,
   overflow: hidden;
   z-index: 1;
   cursor: pointer;
+  /* keeps the hundreds of absolutely positioned blooms from invalidating
+     layout or paint anywhere outside this stage */
+  contain: layout paint;
+}
+
+/* the shared flower symbols live here, drawn once and referenced 240× */
+.flower-defs {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+  pointer-events: none;
 }
 
 #screen-bloom.is-active .bloom-stage {
@@ -343,16 +355,19 @@ button,
   margin: 0;
   transform: translate(-50%, -50%) scale(0) rotate(-40deg);
   opacity: 0;
-  animation: bloomIn .95s cubic-bezier(.18, 1.28, .42, 1) both;
+  animation: bloomIn .9s cubic-bezier(.18, 1.12, .4, 1) both;
   animation-delay: var(--delay, 0s);
-  will-change: transform, opacity;
+  /* Deliberately NO will-change here. Promoting all 240 blooms forced the
+     compositor to allocate a layer per flower, which is what exhausted
+     GPU memory and blanked the screen. */
 }
 
 .spiral-flower svg {
   display: block;
   width: 100%;
   height: 100%;
-  filter: drop-shadow(0 5px 12px rgba(196, 90, 132, .24));
+  /* the drop-shadow filter used to be re-rasterised for every bloom on
+     every single frame — the single most expensive thing on the page */
   animation: flowerSway 6.5s ease-in-out infinite;
   animation-delay: var(--delay, 0s);
 }
@@ -377,11 +392,13 @@ button,
   animation-name: petalFall;
   animation-duration: var(--fall-dur, 1.3s);
   animation-delay: var(--fall-delay, 0s);
-  animation-timing-function: cubic-bezier(.42, .02, .72, .42);
+  /* accelerate off the rim, then ease out as each bloom meets the floor */
+  animation-timing-function: cubic-bezier(.4, .06, .62, .98);
   animation-iteration-count: 1;
   animation-fill-mode: both;
 }
 
+/* starts exactly where bloomIn left off, so the two phases are seamless */
 @keyframes petalFall {
   0% {
     transform: translate(-50%, -50%) translate(0, 0) rotate(0deg) scale(1);
@@ -391,7 +408,7 @@ button,
   55% { opacity: .98; }
 
   100% {
-    transform: translate(-50%, -50%) translate(var(--fall-x, 0px), var(--fall-y, 70svh)) rotate(var(--fall-spin, 90deg)) scale(.9);
+    transform: translate(-50%, -50%) translate(var(--fall-x, 0px), var(--fall-y, 70svh)) rotate(var(--fall-spin, 90deg)) scale(.92);
     opacity: .96;
   }
 }

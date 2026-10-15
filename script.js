@@ -49,9 +49,13 @@
   var copyText = document.getElementById("copyText");
   var letterBody = document.getElementById("letterBody");
 
+  var SVG_NS = "http://www.w3.org/2000/svg";
+
   var phase = "box";
   var bloomTimer = 0;
   var fallTimer = 0;
+  var resizeTimer = 0;
+  var spiralEnd = 0;
 
   /* ── deterministic pseudo random, so the layout is stable ────────── */
   function mulberry32(seed) {
@@ -135,90 +139,156 @@
     field.appendChild(frag);
   }
 
-  /* ── one cartoon flower, drawn as SVG, pink and white only ───────── */
-  function flowerSVG(rng) {
-    var pal = PALETTE[Math.floor(rng() * PALETTE.length)];
-    var petals = 6 + Math.floor(rng() * 4);
-    var step = 360 / petals;
-    var inner = Math.max(4, petals - 2);
-    var innerStep = 360 / inner;
-    var spin = rng() * 360;
-    var shape = [];
-    shape.push('<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg" role="presentation">');
-    shape.push('<g transform="translate(60,60) rotate(' + spin.toFixed(1) + ')">');
-    /* a smaller inner ring so each bloom reads as a full flower */
-    for (var k = 0; k < inner; k++) {
-      shape.push('<ellipse cx="0" cy="-17" rx="9" ry="17" fill="' + pal.inner +
-        '" stroke="' + pal.edge + '" stroke-width="1.4" transform="rotate(' + (k * innerStep + innerStep / 2).toFixed(2) + ')"/>');
+  /* ── the flowers are drawn SIX times, not two hundred and forty ────
+     Every bloom used to carry its own ~30-node inline SVG, which is what
+     buried the renderer. Now each palette entry becomes one <symbol>, and
+     a bloom is just <svg><use/></svg> — two nodes instead of thirty. */
+  var FLOWER_SHAPES = [8, 7, 9, 6, 8, 10];
+  var FLOWER_IDS = [];
+
+  /* one cartoon flower, drawn once per palette entry, pink and white only */
+  function buildFlowerDefs() {
+    if (FLOWER_IDS.length) return;
+
+    var host = document.getElementById("flowerDefs");
+    if (!host) {
+      host = document.createElementNS(SVG_NS, "svg");
+      host.setAttribute("id", "flowerDefs");
+      host.setAttribute("class", "flower-defs");
+      host.setAttribute("aria-hidden", "true");
+      document.body.appendChild(host);
     }
-    for (var i = 0; i < petals; i++) {
-      shape.push('<ellipse cx="0" cy="-27" rx="13" ry="26" fill="' + pal.petal +
-        '" stroke="' + pal.edge + '" stroke-width="1.6" transform="rotate(' + (i * step).toFixed(2) + ')"/>');
+
+    var rng = mulberry32(90210);
+    var out = ["<defs>"];
+
+    for (var p = 0; p < PALETTE.length; p++) {
+      var pal = PALETTE[p];
+      var id = "amna-flower-" + p;
+      var petals = FLOWER_SHAPES[p % FLOWER_SHAPES.length];
+      var step = 360 / petals;
+      var inner = Math.max(4, petals - 2);
+      var innerStep = 360 / inner;
+      var spin = rng() * 360;
+      FLOWER_IDS.push(id);
+
+      out.push('<symbol id="' + id + '" viewBox="0 0 120 120">');
+      out.push('<g transform="translate(60,60) rotate(' + spin.toFixed(1) + ')">');
+      /* a smaller inner ring so each bloom reads as a full flower */
+      for (var k = 0; k < inner; k++) {
+        out.push('<ellipse cx="0" cy="-17" rx="9" ry="17" fill="' + pal.inner +
+          '" stroke="' + pal.edge + '" stroke-width="1.4" transform="rotate(' + (k * innerStep + innerStep / 2).toFixed(2) + ')"/>');
+      }
+      for (var i = 0; i < petals; i++) {
+        out.push('<ellipse cx="0" cy="-27" rx="13" ry="26" fill="' + pal.petal +
+          '" stroke="' + pal.edge + '" stroke-width="1.6" transform="rotate(' + (i * step).toFixed(2) + ')"/>');
+      }
+      out.push('<circle r="12" fill="' + pal.core + '" stroke="' + pal.edge + '" stroke-width="1.6"/>');
+      out.push("</g></symbol>");
     }
-    shape.push('<circle r="12" fill="' + pal.core + '" stroke="' + pal.edge + '" stroke-width="1.6"/>');
-    shape.push("</g></svg>");
-    return shape.join("");
+
+    out.push("</defs>");
+    host.innerHTML = out.join("");
   }
 
-  /* ── 2a · the dense spiral tunnel of blooms ──────────────────────── */
-  var STEP_MS = 12;
+  /* a bloom: two nodes that point at one of the shared symbols */
+  function flowerEl(rng) {
+    var svg = document.createElementNS(SVG_NS, "svg");
+    svg.setAttribute("viewBox", "0 0 120 120");
+    svg.setAttribute("aria-hidden", "true");
+    svg.setAttribute("focusable", "false");
+
+    var id = FLOWER_IDS[Math.floor(rng() * FLOWER_IDS.length)] || FLOWER_IDS[0];
+    var use = document.createElementNS(SVG_NS, "use");
+    use.setAttribute("href", "#" + id);
+    use.setAttributeNS("http://www.w3.org/1999/xlink", "xlink:href", "#" + id);
+    svg.appendChild(use);
+    return svg;
+  }
+
+  /* ── 2a · the explosive spiral: 240 blooms, laid out in one pass ─── */
+  var FLOWER_COUNT = 240;  /* inside the 220–250 band */
+  var EXPAND_S = 0.5;      /* the wave reaches the rim in half a second */
+  var FALL_STEP = 0.005;   /* the release is staggered, never stacked   */
+  var SPIRAL = [];         /* the built blooms, reused by the cascade   */
 
   function buildSpiral() {
+    var w = window.innerWidth || document.documentElement.clientWidth || 360;
+    var h = window.innerHeight || document.documentElement.clientHeight || 640;
+    var cx = w / 2;
+    var cy = h / 2;
+
+    /* The burst must reach every viewport edge with the corners included.
+       Half the longer side — Math.max(w, h) / 2 — is not far enough: on a
+       1440x900 screen that is 720px of reach against an 849px corner, which
+       left all four corners empty. The viewport's half-diagonal always
+       covers them, and is never less than half the longer side.
+
+       Measured in pixels and applied in pixels: the previous version fed
+       pixel values into a vmin() calc, which flung every bloom ~17,000px
+       off screen and took the whole renderer down with it. */
+    var R_MAX = Math.hypot(w, h) * 0.5 * 1.08;
+
     bloomStage.innerHTML = "";
     bloomStage.classList.remove("is-falling");
+    SPIRAL.length = 0;
+    spiralEnd = 0;
+
     var rng = mulberry32(20261014);
-    var COUNT = REDUCED ? 80 : 450;
-    var GOLDEN = Math.PI * (3 - Math.sqrt(5)); /* ≈ 137.5° */
-    var MAX_R = Math.max(window.innerWidth, window.innerHeight) * 0.85;                            /* full viewport spiral radius */
+    var COUNT = REDUCED ? 70 : FLOWER_COUNT;
+    var GOLDEN = Math.PI * (3 - Math.sqrt(5)); /* the golden angle ≈ 137.5° */
     var frag = document.createDocumentFragment();
 
     for (var i = 0; i < COUNT; i++) {
       var t = COUNT === 1 ? 1 : i / (COUNT - 1);
-      var angle = i * GOLDEN;
-      var radius = MAX_R * Math.sqrt(t);
+      var angle = i * GOLDEN;             /* an even sweep, no visible seam */
+      var radius = R_MAX * Math.sqrt(t);  /* equal-area rings: dense core    */
       var dx = Math.cos(angle) * radius;
       var dy = Math.sin(angle) * radius;
+      var size = 20 + t * 56 + rng() * 14;
 
-      var wrap = document.createElement("div");
-      wrap.className = "spiral-flower";
-      wrap.style.left = "calc(50% + " + dx.toFixed(2) + "vmin)";
-      wrap.style.top = "calc(50% + " + dy.toFixed(2) + "vmin)";
-      /* near the centre they are tiny; out at the rim they are large */
-      wrap.style.setProperty("--size", (26 + t * 62 + rng() * 16).toFixed(1) + "px");
-      wrap.style.setProperty("--delay", (i * STEP_MS / 1000).toFixed(3) + "s");
-      wrap.innerHTML = flowerSVG(rng);
-      frag.appendChild(wrap);
-    }
-    bloomStage.appendChild(frag);
-    return (COUNT - 1) * STEP_MS + 950;
-  }
+      var el = document.createElement("div");
+      el.className = "spiral-flower";
+      el.style.left = (cx + dx).toFixed(1) + "px";
+      el.style.top = (cy + dy).toFixed(1) + "px";
+      /* tiny at the core, full-grown at the rim */
+      el.style.setProperty("--size", size.toFixed(1) + "px");
+      /* the wave races outwards, so it reads as one explosive burst */
+      el.style.setProperty("--delay", (t * EXPAND_S).toFixed(3) + "s");
+      el.appendChild(flowerEl(rng));
 
-  /* ── 2b · the cascade: every bloom lets go and falls to the floor ── */
-  function startFalling() {
-    var flowers = Array.prototype.slice.call(bloomStage.querySelectorAll(".spiral-flower"));
-    var vh = window.innerHeight || document.documentElement.clientHeight;
-    var longest = 0;
-
-    flowers.forEach(function (el, i) {
-      var box = el.getBoundingClientRect();
-      var centreY = box.top + box.height / 2;
-      var floorY = vh - box.height * 0.42;
-      var dy = Math.max(60, floorY - centreY);
+      /* The cascade needs no measuring: the geometry is already known, so
+         nothing is read back from layout. The old code called
+         getBoundingClientRect() while writing styles inside the same loop,
+         forcing a synchronous reflow per flower. */
       var dir = i % 2 ? 1 : -1;
-
-      el.style.setProperty("--fall-y", dy.toFixed(1) + "px");
-      el.style.setProperty("--fall-x", (dir * (6 + (i * 13) % 30)).toFixed(0) + "px");
-      el.style.setProperty("--fall-spin", (dir * (120 + (i * 37) % 200)).toFixed(0) + "deg");
-      var delay = i * 0.008;
-      var dur = 1.05 + (i % 5) * 0.08;
+      var drop = Math.max(40, h - size * 0.5 - (cy + dy));
+      var delay = i * FALL_STEP;
+      var dur = 0.95 + (i % 5) * 0.09;
+      el.style.setProperty("--fall-y", drop.toFixed(1) + "px");
+      el.style.setProperty("--fall-x", (dir * (4 + (i * 13) % 26) - dx * 0.1).toFixed(0) + "px");
+      el.style.setProperty("--fall-spin", (dir * (90 + (i * 37) % 220)).toFixed(0) + "deg");
       el.style.setProperty("--fall-delay", delay.toFixed(3) + "s");
       el.style.setProperty("--fall-dur", dur.toFixed(2) + "s");
-      el.classList.add("is-falling");
-      longest = Math.max(longest, delay + dur);
-    });
 
+      SPIRAL.push(el);
+      frag.appendChild(el);
+      spiralEnd = Math.max(spiralEnd, delay + dur);
+    }
+
+    bloomStage.appendChild(frag);
+
+    /* once the outermost bloom has landed, the burst is complete */
+    return Math.round((EXPAND_S + 0.9) * 1000);
+  }
+
+  /* ── 2b · the cascade: every bloom lets go and settles on the floor ─ */
+  function startFalling() {
+    for (var i = 0; i < SPIRAL.length; i++) SPIRAL[i].classList.add("is-falling");
     bloomStage.classList.add("is-falling");
-    return REDUCED ? 400 : Math.max(900, Math.round(longest * 1000) + 260);
+    if (REDUCED) return 500;
+    /* let the cascade land and rest for a beat before the letter arrives */
+    return Math.max(1000, Math.round(spiralEnd * 1000) + 520);
   }
 
   /* ── 3 · the letter types itself out, line by line, as you scroll ── */
@@ -322,6 +392,12 @@
       frames.forEach(function (f) { f.classList.add("is-in"); });
       return;
     }
+    /* The top margin reaches back over the whole page above the viewport, so
+       photos the visitor has already scrolled past are revealed as well.
+       Without it, jumping straight to the bottom (scrollbar drag, End key,
+       deep link) flew past the middle frames and stranded them at opacity 0
+       for good, because an element that never intersects never fires. */
+    var passed = Math.max(2000, document.documentElement.scrollHeight) + "px";
     var obs = new IntersectionObserver(function (entries) {
       entries.forEach(function (entry) {
         if (entry.isIntersecting) {
@@ -329,7 +405,7 @@
           obs.unobserve(entry.target);
         }
       });
-    }, { threshold: 0.15, rootMargin: "0px 0px -6% 0px" });
+    }, { threshold: 0.15, rootMargin: passed + " 0px -6% 0px" });
     frames.forEach(function (f) { obs.observe(f); });
   }
 
@@ -350,9 +426,17 @@
     burstConfetti();
     giftWrap.classList.add("is-opening");
 
-    var bloomMs = buildSpiral();
-    screenBloom.classList.add("is-active");
-    screenBloom.setAttribute("aria-hidden", "false");
+    var bloomMs;
+    try {
+      bloomMs = buildSpiral();
+      screenBloom.classList.add("is-active");
+      screenBloom.setAttribute("aria-hidden", "false");
+    } catch (err) {
+      /* whatever happens, never leave the visitor on a blank screen */
+      screenBox.classList.remove("is-active", "is-opening");
+      goToLetter();
+      return;
+    }
 
     window.setTimeout(function () {
       screenBox.classList.remove("is-active", "is-opening");
@@ -374,8 +458,16 @@
     window.clearTimeout(fallTimer);
     if (phase === "letter") return;
     phase = "letter";
+
+    /* drop the blooms so the renderer is not holding 240 painted layers
+       behind the letter for the rest of the visit */
+    if (bloomStage.childElementCount) bloomStage.innerHTML = "";
+    SPIRAL.length = 0;
+
     show(screenLetter);
-    buildGallery();
+    /* normally already built during idle; build now if the visitor skipped
+       straight here before idle time ever arrived */
+    if (!gallery.childElementCount) buildGallery();
     revealGallery();
     startTyping();
     window.scrollTo({ top: 0, behavior: "auto" });
@@ -414,6 +506,35 @@
     applyTyping(Math.round(scrollProgress() * totalChars));
   }, { passive: true });
 
+  /* the spiral is measured against the live viewport, so re-seat it if the
+     window changes size mid-burst (debounced, and only while blooming) */
+  window.addEventListener("resize", function () {
+    if (phase !== "bloom") return;
+    window.clearTimeout(resizeTimer);
+    resizeTimer = window.setTimeout(function () {
+      if (phase !== "bloom") return;
+      try {
+        buildSpiral();
+      } catch (err) {
+        /* keep whatever is already on screen */
+      }
+    }, 180);
+  });
+
+  /* Build the gallery during idle time — after first paint, so it never
+     competes with the gift box. The six photos then finish loading long
+     before the letter is reached, so nothing pops in or shifts when it
+     appears. (The box itself is fetched by the <link rel=preload> in the
+     document head.) */
+  if ("requestIdleCallback" in window) {
+    window.requestIdleCallback(buildGallery, { timeout: 2500 });
+  } else {
+    window.addEventListener("load", function () {
+      window.setTimeout(buildGallery, 300);
+    });
+  }
+
+  buildFlowerDefs();
   buildPetals();
   window.__amna = {
     goToLetter: goToLetter,
