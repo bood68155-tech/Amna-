@@ -1,92 +1,84 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>A Special Gift for Amna 🌸</title>
-  <meta property="og:title" content="A Special Gift for Amna 🌸" />
-  <meta property="og:description" content="A little digital space created with love, just for you." />
-  <meta property="og:image" content="https://amna-gift-2727opisz-abood-s-projects4.vercel.app/amna/5845017356043239107_121.jpg" />
-  <meta property="og:type" content="website" />
-  <meta name="twitter:card" content="summary_large_image" />
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;600;700&family=Caveat:wght@400;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css">
-  <!-- the gift box is the first thing on screen: fetch it with the document -->
-  <link rel="preload" as="image" href="amna/5940471960225649129_120.png">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>A Special Gift for Amna 🌸</title>
+<meta property="og:title" content="A Special Gift for Amna 🌸" />
+<meta property="og:description" content="A little digital space created with love, just for you." />
+<meta property="og:image" content="https://amna-gift-2727opisz-abood-s-projects4.vercel.app/amna/5845017356043239107_121.jpg" />
+<meta property="og:type" content="website" />
+<meta property="twitter:card" content="summary_large_image" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;600;700&family=Caveat:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+<!-- the gift box is the first thing on screen: fetch it with the document -->
+<link rel="preload" as="image" href="amna/5940471960225649129_120.png">
 </head>
-
 <body>
-  <!-- one <symbol> per flower, drawn once and referenced by every bloom -->
-  <svg class="flower-defs" id="flowerDefs" aria-hidden="true" focusable="false"></svg>
-
-  <div class="petal-field" id="petalField" aria-hidden="true"></div>
-
-  <main class="app">
-    <!-- 1 · the gift box, cropped to the box alone: no frame, no circle -->
-    <section id="screen-box" class="screen is-active">
-      <div id="gift-wrap" role="button" tabindex="0" aria-label="Open the gift">
-        <div class="gift-stage" id="gift-stage">
-          <div class="gift-crop" id="gift-crop">
-            <img class="gift-img gift-base" id="gift-base" src="amna/5940471960225649129_120.png"
-              alt="A white gift box tied with a pink ribbon"
-              onerror="this.onerror=null;this.src='amna/5933832387462631394_121.jpg'">
-            <div class="gift-lid" id="gift-lid" aria-hidden="true">
-              <img class="gift-img" id="gift-lid-img" alt="" aria-hidden="true">
-            </div>
-          </div>
-          <div class="gift-confetti" id="giftConfetti" aria-hidden="true"></div>
-        </div>
-        <div class="box-text">
-          <span>For you, <em>Amna</em></span>
-          <span class="box-sub">(tap to open)</span>
-        </div>
-      </div>
-    </section>
-
-    <!-- 2 · a dense tunnel of pink and white flowers that cascades down -->
-    <section id="screen-bloom" class="screen" aria-hidden="true">
-      <div class="bloom-stage" id="bloomStage" aria-hidden="true"></div>
-    </section>
-
-    <!-- 3 · the gallery first, then the letter underneath -->
-    <section id="screen-letter" class="screen" aria-hidden="true">
-      <h2 class="gallery-heading" style="font-family: var(--hand); color: var(--rose-deep); font-size: clamp(24px, 4vw, 32px); margin: 0 0 16px; letter-spacing: .3px;">For you, Amna</h2>
-      <div class="gallery" id="gallery"></div>
-
-      <article class="paper">
-        <div class="paper-inner" id="letterBody">
-          <p class="letter-line is-para" data-text="To my dearest Amna,"></p>
-          <p class="letter-line is-para" data-text="I wanted to create this little digital space to remind you of how truly special, appreciated, and cherished you are. Watching you pursue your passion in nursing inspires me every day. Your kindness, compassion, and caring heart make you the most beautiful and wonderful nurse in the world. May your days be filled with as much happiness, warmth, and brightness as you bring into the lives of everyone around you."></p>
-          <p class="letter-line is-para" data-text="Keep shining bright and chasing your dreams. Stay as amazing as you are, today and always."></p>
-          <p class="letter-line is-para" data-text="With all my warmest wishes,"></p>
-          <p class="letter-line" data-text="Your friend, abood"></p>
-        </div>
-      </article>
-
-      <div class="btn-row">
-        <button class="paper-btn" id="btn-replay" aria-label="Play again">
-          <svg viewBox="0 0 140 44" preserveAspectRatio="none" aria-hidden="true">
-            <path d="M 6 6 L 134 4 L 136 22 L 132 40 L 8 38 L 4 20 Z" fill="#f5f1ea" stroke="#4a3720" stroke-width="2" />
-            <path d="M 10 10 L 130 8 L 132 22 L 128 36 L 12 34 L 8 22 Z" fill="none" stroke="#7d6440" stroke-width="1" opacity="0.6" />
-          </svg>
-          <span class="btn-text">Play Again</span>
-        </button>
-        <button class="paper-btn" id="btn-copy" aria-label="Copy this link">
-          <svg viewBox="0 0 140 44" preserveAspectRatio="none" aria-hidden="true">
-            <path d="M 6 6 L 134 4 L 136 22 L 132 40 L 8 38 L 4 20 Z" fill="#f5f1ea" stroke="#4a3720" stroke-width="2" />
-            <path d="M 10 10 L 130 8 L 132 22 L 128 36 L 12 34 L 8 22 Z" fill="none" stroke="#7d6440" stroke-width="1" opacity="0.6" />
-          </svg>
-          <span class="btn-text" id="copyText">Copy This Link</span>
-        </button>
-      </div>
-      <p class="footer" style="font-family: var(--hand); color: var(--ink-soft); margin: 16px 0 0; text-align: center; font-size: clamp(14px, 2.5vw, 18px);">I am always by your side</p>
-    </section>
-  </main>
-
-  <script src="script.js"></script>
+<!-- one <symbol> per flower, drawn once and referenced by every bloom -->
+<svg class="flower-defs" id="flowerDefs" aria-hidden="true" focusable="false"></svg>
+<div class="petal-field" id="petalField" aria-hidden="true"></div>
+<main class="app">
+<!-- 1 · the gift box, cropped to the box alone: no frame, no circle -->
+<section id="screen-box" class="screen is-active">
+<div id="gift-wrap" role="button" tabindex="0" aria-label="Open the gift">
+<div class="gift-stage" id="gift-stage">
+<div class="gift-crop" id="gift-crop">
+<img class="gift-img gift-base" id="gift-base" src="amna/5940471960225649129_120.png"
+alt="A white gift box tied with a pink ribbon"
+onerror="this.onerror=null;this.src='amna/5933832387462631394_121.jpg'">
+<div class="gift-lid" id="gift-lid" aria-hidden="true">
+<img class="gift-img" id="gift-lid-img" alt="" aria-hidden="true">
+</div>
+</div>
+<div class="gift-confetti" id="giftConfetti" aria-hidden="true"></div>
+</div>
+<div class="box-text">
+<span>For you, <em>Amna</em></span>
+<span class="box-sub">(tap to open)</span>
+</div>
+</div>
+</section>
+<!-- 2 · a dense tunnel of pink and white flowers that cascades down -->
+<section id="screen-bloom" class="screen" aria-hidden="true">
+<div class="bloom-stage" id="bloomStage" aria-hidden="true"></div>
+</section>
+<!-- 3 · the gallery first, then the letter underneath -->
+<section id="screen-letter" class="screen" aria-hidden="true">
+<h2 class="gallery-heading" style="font-family: var(--hand); color: var(--rose-deep); font-size: clamp(24px, 4vw, 32px); margin: 0 0 16px; letter-spacing: .3px;">For you, Amna</h2>
+<div class="gallery" id="gallery"></div>
+<article class="paper">
+<div class="paper-inner" id="letterBody">
+<p class="letter-line is-para" data-text="To my dearest Amna,"></p>
+<p class="letter-line is-para" data-text="I wanted to create this little digital space to remind you of just how truly special, cherished, and deeply important you are to me. Words can hardly describe how much I value having you in my life."></p>
+<p class="letter-line is-para" data-text="Watching you pursue your passion in nursing inspires me every single day. Your genuine kindness, boundless compassion, and caring heart make you not only an incredible person, but the most beautiful and wonderful nurse in the world."></p>
+<p class="letter-line is-para" data-text="May your days always be filled with as much happiness, warmth, and brightness as you bring into my life and into the lives of everyone around you."></p>
+<p class="letter-line is-para" data-text="Keep shining bright and chasing your dreams. Stay as amazing, pure, and precious as you are, today and always."></p>
+<p class="letter-line" data-text="With all my respect and warmest wishes,"></p>
+<p class="letter-line" data-text="Your friend, abood"></p>
+</div>
+</article>
+<div class="btn-row">
+<button class="paper-btn" id="btn-replay" aria-label="Play again">
+<svg viewBox="0 0 140 44" preserveAspectRatio="none" aria-hidden="true">
+<path d="M 6 6 L 134 4 L 136 22 L 132 40 L 8 38 L 4 20 Z" fill="#f5f1ea" stroke="#4a3720" stroke-width="2" />
+<path d="M 10 10 L 130 8 L 132 22 L 128 36 L 12 34 L 8 22 Z" fill="none" stroke="#7d6440" stroke-width="1" opacity="0.6" />
+</svg>
+<span class="btn-text">Play Again</span>
+</button>
+<button class="paper-btn" id="btn-copy" aria-label="Copy this link">
+<svg viewBox="0 0 140 44" preserveAspectRatio="none" aria-hidden="true">
+<path d="M 6 6 L 134 4 L 136 22 L 132 40 L 8 38 L 4 20 Z" fill="#f5f1ea" stroke="#4a3720" stroke-width="2" />
+<path d="M 10 10 L 130 8 L 132 22 L 128 36 L 12 34 L 8 22 Z" fill="none" stroke="#7d6440" stroke-width="1" opacity="0.6" />
+</svg>
+<span class="btn-text" id="copyText">Copy This Link</span>
+</button>
+</div>
+<p class="footer" style="font-family: var(--hand); color: var(--ink-soft); margin: 16px 0 0; text-align: center; font-size: clamp(14px, 2.5vw, 18px);">I am always by your side</p>
+</section>
+</main>
+<script src="script.js"></script>
 </body>
-
 </html>

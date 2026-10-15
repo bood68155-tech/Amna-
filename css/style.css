@@ -608,6 +608,8 @@ button,
 .paper-btn:active { transform: translateY(1px); }
 
 /* ── accessibility & motion preferences ────────────────────────────── */
+@media (prefers-reduced-motion: no-preference) { .petal { animation-duration: 11s linear !important; } }
+
 @media (prefers-reduced-motion: reduce) {
   .petal,
   #gift-wrap,

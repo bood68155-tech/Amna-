@@ -309,7 +309,7 @@
 
     var frag = document.createDocumentFragment();
     var sp = 1;                    /* how far along the arm we have walked */
-    var fallStep = 1.15 / COUNT;   /* the whole cascade staggered over 1.15s */
+    var fallStep = 1.85 / COUNT;   /* the whole cascade staggered over 1.85s */
 
     for (var i = 0; i < COUNT; i++) {
       /* Where along the arm this bloom sits: a fixed arc length from the
@@ -348,7 +348,7 @@
       var dir = i % 2 ? 1 : -1;
       var drop = Math.max(40, h - size * 0.5 - (cy + oy));
       var delay = i * fallStep;
-      var dur = 0.95 + (i % 5) * 0.09;
+      var dur = 1.55 + (i % 5) * 0.14;
       el.style.setProperty("--fall-y", drop.toFixed(1) + "px");
       el.style.setProperty("--fall-x", (dir * (4 + (i * 13) % 26) - ox * 0.1).toFixed(0) + "px");
       el.style.setProperty("--fall-spin", (dir * (90 + (i * 37) % 220)).toFixed(0) + "deg");
@@ -388,7 +388,7 @@
     bloomStage.classList.add("is-falling");
     if (REDUCED) return 500;
     /* let the cascade land and rest for a beat before the letter arrives */
-    return Math.max(1000, Math.round(spiralEnd * 1000) + 520);
+    return Math.max(1500, Math.round(spiralEnd * 1000) + 920);
   }
 
   /* ── 3 · the letter types itself out, line by line, as you scroll ── */
