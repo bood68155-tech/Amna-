@@ -322,7 +322,15 @@
        the animation here changes nothing on screen, but it does leave the
        cascade with no transformed ancestor to composite through. */
     var orbit = bloomStage.querySelector(".bloom-orbit");
-    if (orbit) orbit.classList.remove("is-orbiting");
+    if (orbit) {
+      /* Drop the transform only once it has really finished. If the orbit is
+         somehow still running, leaving it be is far better than snapping the
+         whole arm to a new angle mid-flight. */
+      var running = orbit.getAnimations
+        ? orbit.getAnimations().some(function (a) { return a.playState === "running"; })
+        : false;
+      if (!running) orbit.classList.remove("is-orbiting");
+    }
 
     for (var i = 0; i < SPIRAL.length; i++) SPIRAL[i].classList.add("is-falling");
     bloomStage.classList.add("is-falling");
@@ -483,14 +491,46 @@
       screenBox.setAttribute("aria-hidden", "true");
     }, 1150);
 
+    /* Hand over to the cascade when the orbit itself says it has finished,
+       not after a fixed delay. Building 240 blooms pushes the start of the
+       animation a few hundred ms past the click, so a plain timer used to
+       cut the rotation short and snap the whole arm to its final angle.
+       The timer stays on as a backstop for the reduced-motion path, where
+       no animation runs at all. */
+    var orbit = bloomStage.querySelector(".bloom-orbit");
+    var HOLD_MS = 420;   /* hold the full spiral before it lets go */
+    var handedOver = false;
+
+    function toCascade() {
+      if (handedOver || phase !== "bloom") return;
+      handedOver = true;
+      window.clearTimeout(bloomTimer);
+      bloomTimer = window.setTimeout(function () {
+        if (phase !== "bloom") return;
+        phase = "fall";
+        var fallMs = startFalling();
+        window.clearTimeout(fallTimer);
+        fallTimer = window.setTimeout(goToLetter, fallMs);
+      }, HOLD_MS);
+    }
+
+    /* animationend bubbles, and every bloom runs its own fade-in, so the
+       event has to be matched against the orbit's own animation. Without the
+       check, a petal finishing its fade was mistaken for the spiral
+       finishing — the cascade then chopped the last degrees off the spin and
+       snapped the arm sideways. */
+    function onOrbitEnd(e) {
+      if (e && (e.target !== orbit || e.animationName !== "spiralOrbit")) return;
+      toCascade();
+    }
+
     window.clearTimeout(bloomTimer);
-    bloomTimer = window.setTimeout(function () {
-      if (phase !== "bloom") return;
-      phase = "fall";
-      var fallMs = startFalling();
-      window.clearTimeout(fallTimer);
-      fallTimer = window.setTimeout(goToLetter, fallMs);
-    }, REDUCED ? 400 : bloomMs);
+    /* backstop only: the real handover is the animation's own end event, so
+       this is deliberately far enough out not to race it */
+    bloomTimer = window.setTimeout(toCascade, REDUCED ? 400 : bloomMs + 2000);
+    if (orbit && !REDUCED && orbit.addEventListener) {
+      orbit.addEventListener("animationend", onOrbitEnd);
+    }
   }
 
   function goToLetter() {
