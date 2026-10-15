@@ -6,11 +6,12 @@
   "use strict";
 
   var BOUQUETS = [
-    "amna/5936084187276316915_121.jpg",
+    /* personal photos (replace src below once the real files are in amna/) */
+    "amna/5845017356043239107_121.jpg",
+    "amna/5845017356043239106_121.jpg",
+    "amna/5845017356043239105_121.jpg",
     "amna/5936084187276316916_120.jpg",
-    "amna/5936084187276316917_121.jpg",
     "amna/5936084187276316918_120.jpg",
-    "amna/5936084187276316920_121.jpg",
     "amna/5936084187276316921_121.jpg"
   ];
 
