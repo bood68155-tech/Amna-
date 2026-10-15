@@ -6,12 +6,12 @@
   "use strict";
 
   var BOUQUETS = [
-    /* Bouquet 1 — working fallback bouquet */
-    "https://images.unsplash.com/photo-1563241527-3004b7be0ffd?w=600",
-    /* Bouquet 2 — working fallback bouquet */
-    "https://images.unsplash.com/photo-1526047932273-341f2a7631f9?w=600",
-    /* Bouquet 3 — working fallback bouquet */
-    "https://images.unsplash.com/photo-1582794543139-8ac9cb0f7b11?w=600",
+    /* Bouquet 1 — Amna personal photo */
+    "amna/5845017356043239107_121.jpg",
+    /* Bouquet 2 — Amna personal photo */
+    "amna/5845017356043239106_121.jpg",
+    /* Bouquet 3 — Amna personal photo */
+    "amna/5845017356043239105_121.jpg",
     "amna/5936084187276316916_120.jpg",
     "amna/5936084187276316918_120.jpg",
     "amna/5936084187276316921_121.jpg"
