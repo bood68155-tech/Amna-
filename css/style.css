@@ -393,8 +393,7 @@ button,
   height: 100%;
   /* the drop-shadow filter used to be re-rasterised for every bloom on
      every single frame — the single most expensive thing on the page */
-  animation: flowerSway 6.5s ease-in-out infinite;
-  animation-delay: var(--delay, 0s);
+  /* EXPERIMENT: sway removed */
 }
 
 @keyframes bloomFade {

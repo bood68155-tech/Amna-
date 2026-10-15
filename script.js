@@ -207,12 +207,31 @@
   }
 
   /* ── 2a · the Archimedean spiral orbit ───────────────────────────── */
-  var FLOWER_COUNT = 240;  /* inside the 220–250 band */
-  var TURNS = 5;           /* how many times the single arm wraps  */
-  var SAMPLE_Q = 0.6;      /* bloom spacing along the arm (see below) */
+  /* Density comes from the screen, never from a fixed count: one bloom per
+     AREA_PER_BLOOM pixels of viewport, so a phone and a laptop both end up
+     saturated. MAX_BLOOMS bounds the DOM, and because the bloom size below
+     is derived from the count, a screen that hits that ceiling gets bigger
+     blooms rather than blank space. */
+  var AREA_PER_BLOOM = 900;  /* roughly one bloom per 30x30px of screen  */
+  var MIN_BLOOMS = 200;      /* small screens still cover every corner    */
+  var MAX_BLOOMS = 1600;     /* the ceiling, so huge screens stay fluid   */
   var ORBIT_S = 1.6;       /* expansion + swirl, in seconds        */
-  var FALL_STEP = 0.005;   /* the release is staggered, never stacked */
   var SPIRAL = [];         /* the built blooms, reused by the cascade */
+
+  /* Arc length of the arm r = a + b*theta, needed to space blooms out
+     evenly along it. Sampling theta evenly instead would bunch them near
+     the centre, where the arc is short, and thin out the outer wraps — the
+     outer wraps being the ones that cover the screen. */
+  function armLength(a, b, thetaMax) {
+    var steps = Math.max(400, Math.ceil(thetaMax / 0.05));
+    var dth = thetaMax / steps;
+    var sum = 0;
+    for (var i = 0; i < steps; i++) {
+      var r = a + b * (i + 0.5) * dth;
+      sum += Math.sqrt(r * r + b * b) * dth;
+    }
+    return sum;
+  }
 
   function buildSpiral() {
     var w = window.innerWidth || document.documentElement.clientWidth || 360;
@@ -221,26 +240,53 @@
     var cy = h / 2;
     var D = Math.hypot(cx, cy);   /* centre out to the furthest corner */
 
+    /* Density first: how many blooms this screen gets. */
+    var COUNT = Math.max(MIN_BLOOMS,
+      Math.min(MAX_BLOOMS, Math.round((w * h) / AREA_PER_BLOOM)));
+
     /* ── r = a + b * theta ─────────────────────────────────────────────
        One continuous arm whose radius grows by the same amount on every
-       turn. That constant turn gap is what makes it read as a spiral; the
-       evenly-spread phyllotaxis it replaces just looked like a dot field
-       with no turns to follow.
+       turn. That constant turn gap is what makes it read as a spiral.
 
-       An arm only reaches the rim at its own tip, so every other direction
-       used to fall short by up to one full turn gap (measured: 30-35 of 36
-       directions, gaps to 352px). R_MAX is therefore enlarged until the
-       whole outer wrap clears the furthest corner — at TURNS = 5 that is
-       D / (1 - 0.96 / 5) — which reaches all 36 directions and every
-       corner from 320x568 up to 3440x1440.
+       An arm only reaches the rim at its own tip, so the radius has to be
+       pushed past the furthest corner before the wraps between the tip and
+       the corner can be assumed to fill anything. From there the two gaps
+       that can actually leave a blank stripe are solved for rather than
+       guessed at:
 
-       Pixels throughout: the old code fed pixel values into a vmin() calc,
-       which flung every bloom ~17,000px off screen and took the renderer
-       down with it. */
-    var THETA_MAX = TURNS * Math.PI * 2;
-    var R_MAX = D / (1 - 0.96 / TURNS);
-    var A = R_MAX * 0.04;                 /* a — the small inner hole */
-    var B = (R_MAX - A) / THETA_MAX;      /* b — constant radius gain */
+         · the radial distance between neighbouring wraps, (R-A)/TURNS;
+         · the spacing between neighbouring blooms along the arm, L/COUNT.
+
+       Choosing TURNS = sqrt(COUNT*(R-A)/(PI*R)) makes those two equal —
+       both come out as sqrt(PI*R*(R-A)/COUNT) — and the bloom size is then
+       set to 1.18x that, which leaves an 18% overlap and therefore no seam
+       in either direction. With that solved, R = D + 1.6*size keeps the
+       outer wrap clearing every corner on every viewport.
+
+       Pixels throughout: an earlier version fed pixel values into a vmin()
+       calc, which flung every bloom ~17,000px off screen. */
+    var R = D * 1.1, A = 22, B = 1, THETA_MAX = 1, TURNS = 1, L = 0, SIZE = 44;
+    for (var pass = 0; pass < 8; pass++) {
+      R = D + SIZE * 1.6;                 /* the tip clears the furthest corner */
+      A = SIZE * 0.34;                    /* a hole the centre still covers     */
+      TURNS = Math.sqrt(COUNT * (R - A) / (Math.PI * R));
+      THETA_MAX = TURNS * Math.PI * 2;
+      B = (R - A) / THETA_MAX;            /* b — constant radius gain */
+      L = armLength(A, B, THETA_MAX);
+      SIZE = Math.max((R - A) / TURNS, L / COUNT) * 1.18;
+    }
+
+    /* Cumulative arc length along the arm, so the loop below can drop a
+       bloom every L/COUNT of path. Both sequences only move forward, so the
+       walk costs one pass. */
+    var steps = Math.max(200, Math.ceil(THETA_MAX / 0.04));
+    var dth = THETA_MAX / steps;
+    var cum = new Float64Array(steps + 1);
+    for (var s = 1; s <= steps; s++) {
+      var rm = A + B * (s - 0.5) * dth;
+      cum[s] = cum[s - 1] + Math.sqrt(rm * rm + B * B) * dth;
+    }
+    var Ltot = cum[steps];
 
     bloomStage.innerHTML = "";
     bloomStage.classList.remove("is-falling");
@@ -248,7 +294,6 @@
     spiralEnd = 0;
 
     var rng = mulberry32(20261014);
-    var COUNT = REDUCED ? 70 : FLOWER_COUNT;
 
     /* The arm spins while it grows. The wrapper takes two full turns of
        rotation as it scales up from the centre, so the net transform when
@@ -260,18 +305,22 @@
     orbit.style.setProperty("--orbit-dur", ORBIT_S + "s");
 
     var frag = document.createDocumentFragment();
+    var sp = 1;                    /* how far along the arm we have walked */
+    var fallStep = 1.15 / COUNT;   /* the whole cascade staggered over 1.15s */
 
     for (var i = 0; i < COUNT; i++) {
-      var t = COUNT === 1 ? 1 : i / (COUNT - 1);
-      /* How far along the arm this bloom sits. Sampling theta = THETA*t^0.6
-         rather than THETA*t puts more of the 240 blooms on the outer wraps,
-         where they are the ones actually covering the screen — every edge
-         band goes from 15-22 blooms to 23-33, and the four edges even out.
-         The arm's shape is untouched: r is still exactly a + b * theta. */
-      var theta = THETA_MAX * Math.pow(t, SAMPLE_Q);
+      /* Where along the arm this bloom sits: a fixed arc length from the
+         last, not a fixed angle. r is still exactly a + b * theta. */
+      var target = Ltot * i / COUNT;
+      while (sp < steps && cum[sp] < target) sp++;
+      var lo = cum[sp - 1], hi = cum[sp];
+      var theta = (sp - 1 + (hi > lo ? (target - lo) / (hi - lo) : 0)) * dth;
       var radius = A + B * theta;             /* r = a + b * theta */
       var deg = theta * 180 / Math.PI;
-      var size = 20 + t * 56 + rng() * 14;
+      /* Sized off the solved constant. The floor of 0.92 keeps even the
+         smallest bloom wider than the gap it is responsible for closing. */
+      var size = SIZE * (0.92 + rng() * 0.28);
+      var t = COUNT === 1 ? 1 : i / (COUNT - 1);
 
       var el = document.createElement("div");
       el.className = "spiral-flower";
@@ -295,7 +344,7 @@
       var oy = Math.sin(theta) * radius;
       var dir = i % 2 ? 1 : -1;
       var drop = Math.max(40, h - size * 0.5 - (cy + oy));
-      var delay = i * FALL_STEP;
+      var delay = i * fallStep;
       var dur = 0.95 + (i % 5) * 0.09;
       el.style.setProperty("--fall-y", drop.toFixed(1) + "px");
       el.style.setProperty("--fall-x", (dir * (4 + (i * 13) % 26) - ox * 0.1).toFixed(0) + "px");
