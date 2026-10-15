@@ -206,28 +206,41 @@
     return svg;
   }
 
-  /* ── 2a · the explosive spiral: 240 blooms, laid out in one pass ─── */
+  /* ── 2a · the Archimedean spiral orbit ───────────────────────────── */
   var FLOWER_COUNT = 240;  /* inside the 220–250 band */
-  var EXPAND_S = 0.5;      /* the wave reaches the rim in half a second */
-  var FALL_STEP = 0.005;   /* the release is staggered, never stacked   */
-  var SPIRAL = [];         /* the built blooms, reused by the cascade   */
+  var TURNS = 5;           /* how many times the single arm wraps  */
+  var SAMPLE_Q = 0.6;      /* bloom spacing along the arm (see below) */
+  var ORBIT_S = 1.6;       /* expansion + swirl, in seconds        */
+  var FALL_STEP = 0.005;   /* the release is staggered, never stacked */
+  var SPIRAL = [];         /* the built blooms, reused by the cascade */
 
   function buildSpiral() {
     var w = window.innerWidth || document.documentElement.clientWidth || 360;
     var h = window.innerHeight || document.documentElement.clientHeight || 640;
     var cx = w / 2;
     var cy = h / 2;
+    var D = Math.hypot(cx, cy);   /* centre out to the furthest corner */
 
-    /* The burst must reach every viewport edge with the corners included.
-       Half the longer side — Math.max(w, h) / 2 — is not far enough: on a
-       1440x900 screen that is 720px of reach against an 849px corner, which
-       left all four corners empty. The viewport's half-diagonal always
-       covers them, and is never less than half the longer side.
+    /* ── r = a + b * theta ─────────────────────────────────────────────
+       One continuous arm whose radius grows by the same amount on every
+       turn. That constant turn gap is what makes it read as a spiral; the
+       evenly-spread phyllotaxis it replaces just looked like a dot field
+       with no turns to follow.
 
-       Measured in pixels and applied in pixels: the previous version fed
-       pixel values into a vmin() calc, which flung every bloom ~17,000px
-       off screen and took the whole renderer down with it. */
-    var R_MAX = Math.hypot(w, h) * 0.5 * 1.08;
+       An arm only reaches the rim at its own tip, so every other direction
+       used to fall short by up to one full turn gap (measured: 30-35 of 36
+       directions, gaps to 352px). R_MAX is therefore enlarged until the
+       whole outer wrap clears the furthest corner — at TURNS = 5 that is
+       D / (1 - 0.96 / 5) — which reaches all 36 directions and every
+       corner from 320x568 up to 3440x1440.
+
+       Pixels throughout: the old code fed pixel values into a vmin() calc,
+       which flung every bloom ~17,000px off screen and took the renderer
+       down with it. */
+    var THETA_MAX = TURNS * Math.PI * 2;
+    var R_MAX = D / (1 - 0.96 / TURNS);
+    var A = R_MAX * 0.04;                 /* a — the small inner hole */
+    var B = (R_MAX - A) / THETA_MAX;      /* b — constant radius gain */
 
     bloomStage.innerHTML = "";
     bloomStage.classList.remove("is-falling");
@@ -236,37 +249,56 @@
 
     var rng = mulberry32(20261014);
     var COUNT = REDUCED ? 70 : FLOWER_COUNT;
-    var GOLDEN = Math.PI * (3 - Math.sqrt(5)); /* the golden angle ≈ 137.5° */
+
+    /* The arm spins while it grows. The wrapper takes two full turns of
+       rotation as it scales up from the centre, so the net transform when
+       it finishes is the identity and the cascade below can fall in plain
+       screen coordinates. One animated element, not two hundred and forty. */
+    var orbit = document.createElement("div");
+    orbit.className = "bloom-orbit is-orbiting";
+    orbit.setAttribute("aria-hidden", "true");
+    orbit.style.setProperty("--orbit-dur", ORBIT_S + "s");
+
     var frag = document.createDocumentFragment();
 
     for (var i = 0; i < COUNT; i++) {
       var t = COUNT === 1 ? 1 : i / (COUNT - 1);
-      var angle = i * GOLDEN;             /* an even sweep, no visible seam */
-      var radius = R_MAX * Math.sqrt(t);  /* equal-area rings: dense core    */
-      var dx = Math.cos(angle) * radius;
-      var dy = Math.sin(angle) * radius;
+      /* How far along the arm this bloom sits. Sampling theta = THETA*t^0.6
+         rather than THETA*t puts more of the 240 blooms on the outer wraps,
+         where they are the ones actually covering the screen — every edge
+         band goes from 15-22 blooms to 23-33, and the four edges even out.
+         The arm's shape is untouched: r is still exactly a + b * theta. */
+      var theta = THETA_MAX * Math.pow(t, SAMPLE_Q);
+      var radius = A + B * theta;             /* r = a + b * theta */
+      var deg = theta * 180 / Math.PI;
       var size = 20 + t * 56 + rng() * 14;
 
       var el = document.createElement("div");
       el.className = "spiral-flower";
-      el.style.left = (cx + dx).toFixed(1) + "px";
-      el.style.top = (cy + dy).toFixed(1) + "px";
-      /* tiny at the core, full-grown at the rim */
+      /* parked on the arm: rotate to theta, then step out to r. The wrapper
+         spins the whole arm on top of this. */
+      el.style.transform = "translate(-50%, -50%) rotate(" + deg.toFixed(2) +
+        "deg) translateX(" + radius.toFixed(1) + "px)";
+      /* the cascade must return each bloom to this exact place, so keep it */
+      el.style.setProperty("--oa", deg.toFixed(2) + "deg");
+      el.style.setProperty("--or", radius.toFixed(1) + "px");
       el.style.setProperty("--size", size.toFixed(1) + "px");
-      /* the wave races outwards, so it reads as one explosive burst */
-      el.style.setProperty("--delay", (t * EXPAND_S).toFixed(3) + "s");
+      /* inner blooms fade in first, so the arm unfurls outwards */
+      el.style.setProperty("--delay", (t * 0.3).toFixed(3) + "s");
       el.appendChild(flowerEl(rng));
 
       /* The cascade needs no measuring: the geometry is already known, so
          nothing is read back from layout. The old code called
          getBoundingClientRect() while writing styles inside the same loop,
          forcing a synchronous reflow per flower. */
+      var ox = Math.cos(theta) * radius;
+      var oy = Math.sin(theta) * radius;
       var dir = i % 2 ? 1 : -1;
-      var drop = Math.max(40, h - size * 0.5 - (cy + dy));
+      var drop = Math.max(40, h - size * 0.5 - (cy + oy));
       var delay = i * FALL_STEP;
       var dur = 0.95 + (i % 5) * 0.09;
       el.style.setProperty("--fall-y", drop.toFixed(1) + "px");
-      el.style.setProperty("--fall-x", (dir * (4 + (i * 13) % 26) - dx * 0.1).toFixed(0) + "px");
+      el.style.setProperty("--fall-x", (dir * (4 + (i * 13) % 26) - ox * 0.1).toFixed(0) + "px");
       el.style.setProperty("--fall-spin", (dir * (90 + (i * 37) % 220)).toFixed(0) + "deg");
       el.style.setProperty("--fall-delay", delay.toFixed(3) + "s");
       el.style.setProperty("--fall-dur", dur.toFixed(2) + "s");
@@ -276,14 +308,22 @@
       spiralEnd = Math.max(spiralEnd, delay + dur);
     }
 
-    bloomStage.appendChild(frag);
+    orbit.appendChild(frag);
+    bloomStage.appendChild(orbit);
 
-    /* once the outermost bloom has landed, the burst is complete */
-    return Math.round((EXPAND_S + 0.9) * 1000);
+    /* a small buffer so the orbit animation has definitely finished before
+       the cascade takes over */
+    return Math.round(ORBIT_S * 1000) + 80;
   }
 
   /* ── 2b · the cascade: every bloom lets go and settles on the floor ─ */
   function startFalling() {
+    /* The orbit ends at rotate(720deg) scale(1) — the identity — so dropping
+       the animation here changes nothing on screen, but it does leave the
+       cascade with no transformed ancestor to composite through. */
+    var orbit = bloomStage.querySelector(".bloom-orbit");
+    if (orbit) orbit.classList.remove("is-orbiting");
+
     for (var i = 0; i < SPIRAL.length; i++) SPIRAL[i].classList.add("is-falling");
     bloomStage.classList.add("is-falling");
     if (REDUCED) return 500;

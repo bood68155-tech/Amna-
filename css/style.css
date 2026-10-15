@@ -348,14 +348,39 @@ button,
   to   { opacity: 1; }
 }
 
+/* ── the arm spins and grows as one rigid spiral ───────────────────── */
+/* Every bloom is parked on the Archimedean arm by the script. Animating
+   this one wrapper — rather than 240 individual elements — rotates the
+   whole arm twice while scaling it up out of the centre, so the swirl
+   costs a single composited layer. Two full turns means the transform it
+   finishes on is the identity. */
+.bloom-orbit {
+  position: absolute;
+  inset: 0;
+  transform-origin: 50% 50%;
+}
+
+.bloom-orbit.is-orbiting {
+  animation: spiralOrbit var(--orbit-dur, 1.6s) cubic-bezier(.16, .84, .3, 1) both;
+}
+
+@keyframes spiralOrbit {
+  from { transform: rotate(0deg) scale(0); }
+
+  to   { transform: rotate(720deg) scale(1); }
+}
+
+/* The resting place on the arm is set inline by the script, so only the
+   fade-in is animated here: the two never fight over `transform`. */
 .spiral-flower {
   position: absolute;
+  left: 50%;
+  top: 50%;
   width: var(--size, 64px);
   height: var(--size, 64px);
   margin: 0;
-  transform: translate(-50%, -50%) scale(0) rotate(-40deg);
   opacity: 0;
-  animation: bloomIn .9s cubic-bezier(.18, 1.12, .4, 1) both;
+  animation: bloomFade .55s ease-out both;
   animation-delay: var(--delay, 0s);
   /* Deliberately NO will-change here. Promoting all 240 blooms forced the
      compositor to allocate a layer per flower, which is what exhausted
@@ -372,12 +397,10 @@ button,
   animation-delay: var(--delay, 0s);
 }
 
-@keyframes bloomIn {
-  0%   { transform: translate(-50%, -50%) scale(0) rotate(-40deg); opacity: 0; }
+@keyframes bloomFade {
+  from { opacity: 0; }
 
-  70%  { opacity: 1; }
-
-  100% { transform: translate(-50%, -50%) scale(1) rotate(0deg); opacity: 1; }
+  to   { opacity: 1; }
 }
 
 @keyframes flowerSway {
@@ -398,17 +421,22 @@ button,
   animation-fill-mode: both;
 }
 
-/* starts exactly where bloomIn left off, so the two phases are seamless */
+/* Resumes from the exact place the orbit left each bloom — same angle and
+   same radius — so the handoff is seamless. The falling offset comes first
+   in the chain, before the orbit rotation, so the particles drop in plain
+   screen space instead of along a rotated axis. */
 @keyframes petalFall {
   0% {
-    transform: translate(-50%, -50%) translate(0, 0) rotate(0deg) scale(1);
+    transform: translate(-50%, -50%) translate(0, 0)
+      rotate(var(--oa, 0deg)) translateX(var(--or, 0px)) rotate(0deg) scale(1);
     opacity: 1;
   }
 
   55% { opacity: .98; }
 
   100% {
-    transform: translate(-50%, -50%) translate(var(--fall-x, 0px), var(--fall-y, 70svh)) rotate(var(--fall-spin, 90deg)) scale(.92);
+    transform: translate(-50%, -50%) translate(var(--fall-x, 0px), var(--fall-y, 70svh))
+      rotate(var(--oa, 0deg)) translateX(var(--or, 0px)) rotate(var(--fall-spin, 90deg)) scale(.92);
     opacity: .96;
   }
 }
@@ -585,14 +613,14 @@ button,
   .petal,
   #gift-wrap,
   .spiral-flower,
-  .spiral-flower svg {
+  .spiral-flower svg,
+  .bloom-orbit {
     animation: none !important;
   }
 
   .petal { opacity: .5; }
 
-  .spiral-flower {
-    opacity: 1;
-    transform: translate(-50%, -50%) scale(1);
-  }
+  /* no orbit: show the fully-formed arm straight away. The resting transform
+     is already set inline, so it must not be overridden here. */
+  .spiral-flower { opacity: 1; }
 }
